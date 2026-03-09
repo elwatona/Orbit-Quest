@@ -1,0 +1,18 @@
+[33m4270860[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m feat(orb): refactor escape mechanics to impulse system, update UI bindings, and enhance player controls
+[33mf60cbfe[m feat(orbiter): rename OrbitMode to MovementMode, implement inertia stabilizer functionality, and update related input actions
+[33m49dc9a1[m feat: implement developer mode toggle and enhance player control interactions
+[33m9e879a9[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat(input): add movement and thrust actions for player control
+[33mf95b9f5[m feat: Transform Orbiter editable in runtime with UI & added player actions
+[33mc204ab8[m feat: Transform Orbiter now allows single and multi target orbit
+[33m1b9d734[m feat: generic inspector with groups, orb escape UI, debug panel, TransformOrbiter null-safety
+[33m500c3ef[m feat: rework trajectory prediction and add velocity indicator
+[33ma916085[m feat(orb): orbital grab & direction indicator added
+[33m24e925c[m refactor(Orb): orbiter behaviour separated from orbit
+[33mddc5d69[m feat(orb & astro): moon refactored to astro & added astro types and orb orbiting behaviour
+[33m8617e02[m[33m ([m[1;33mtag: [m[1;33mpre-alpha[m[33m)[m feat(UI Manager & spawner): Moon Inspector & spawn position indicator added
+[33m70dd606[m fix(Orbit danger zone) & feat(Orbit): fix danger zone detection & orbit parameters added
+[33ma1c25bf[m feat(gameloop & audio): audio feedback & respawn behavior added
+[33mfbbef69[m refactor(orbit): separate Shader Controller from Orbit & add orb input
+[33me54c50b[m feat(orb): create orb behavior
+[33me56b7fb[m feat(orbit): add visual elements
+[33mcf0bc32[m chore: initial commit

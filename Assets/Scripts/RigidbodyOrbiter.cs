@@ -508,14 +508,11 @@ public class RigidbodyOrbiter
     // Public API
     // ---------------------------------------------------------
 
-    public void Loose(Vector3 cursorWorldPosition)
+    public void Impulse(Vector3 cursorWorldPosition)
     {
-        if (_capturedOrbit == null)
-            return;
-
         float currentSpeed = _rb.linearVelocity.magnitude;
 
-        Vector3 escapeDirection = _settings.escapeMode switch
+        Vector3 impulseDirection = _settings.escapeMode switch
         {
             EscapeMode.Velocity => _rb.linearVelocity.normalized,
             _ => (cursorWorldPosition - _transform.position).normalized,
@@ -524,23 +521,8 @@ public class RigidbodyOrbiter
         _isDetaching = false;
         ReleaseCapturedOrbit();
 
-        _rb.linearVelocity = escapeDirection * currentSpeed;
-        _rb.AddForce(escapeDirection * _settings.escapeForce, ForceMode.VelocityChange);
-    }
-
-    /// <summary>Applies a fixed speed toward cursor (e.g. first loose after respawn, when velocity is 0 and there is no orbit).</summary>
-    public void LooseWithFixedSpeed(Vector3 cursorWorldPosition, float speed)
-    {
-        Vector3 toCursor = cursorWorldPosition - _transform.position;
-        Vector3 direction = toCursor.sqrMagnitude > 0.0001f ? toCursor.normalized : Vector3.right;
-
-        if (_capturedOrbit != null)
-        {
-            _isDetaching = false;
-            ReleaseCapturedOrbit();
-        }
-
-        _rb.linearVelocity = direction * speed;
+        _rb.linearVelocity = impulseDirection * currentSpeed;
+        _rb.AddForce(impulseDirection * _settings.impulseForce, ForceMode.VelocityChange);
     }
 
     public int PredictTrajectory(Vector3 cursorWorldPosition)
@@ -623,7 +605,7 @@ public class RigidbodyOrbiter
             thrustForce = baseSettings.thrustForce,
             minThrustAssist = baseSettings.minThrustAssist,
             escapeMode = baseSettings.escapeMode,
-            escapeForce = baseSettings.escapeForce,
+            impulseForce = baseSettings.impulseForce,
             detachSpins = baseSettings.detachSpins,
             inertiaStabilizer = baseSettings.inertiaStabilizer,
             inertiaDampTime = baseSettings.inertiaDampTime,
@@ -653,7 +635,7 @@ public class RigidbodyOrbiter
             thrustForce = Mathf.Lerp(from.thrustForce, to.thrustForce, t),
             minThrustAssist = Mathf.Lerp(from.minThrustAssist, to.minThrustAssist, t),
             escapeMode = to.escapeMode,
-            escapeForce = to.escapeForce,
+            impulseForce = to.impulseForce,
             detachSpins = to.detachSpins,
             inertiaStabilizer = to.inertiaStabilizer,
             inertiaDampTime = Mathf.Lerp(from.inertiaDampTime, to.inertiaDampTime, t),
@@ -688,9 +670,9 @@ public struct OrbiterSettings
     [Tooltip("Manual mode only: max tangential acceleration to maintain orbit when below orbital speed.")]
     [Range(0f, 10f)] public float minThrustAssist;
 
-    [Header("Escape")]
+    [Header("Impulse")]
     public EscapeMode escapeMode;
-    [Range(0f, 30f)] public float escapeForce;
+    [Range(0f, 30f)] public float impulseForce;
 
     [Header("Detach")]
     [Range(1, 5)] public int detachSpins;
@@ -713,7 +695,7 @@ public struct OrbiterSettings
         speedDamping = 2f,
         thrustForce = 5f,
         minThrustAssist = 2f,
-        escapeForce = 5f,
+        impulseForce = 5f,
         detachSpins = 1,
         inertiaStabilizer = true,
         inertiaDampTime = 2f,

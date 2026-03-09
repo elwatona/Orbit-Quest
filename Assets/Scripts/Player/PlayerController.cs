@@ -83,14 +83,14 @@ public class PlayerController : MonoBehaviour
         else if (context.canceled)
             _orb.SetAiming(false);
     }
-    public void Loose(InputAction.CallbackContext context)
+    public void Impulse(InputAction.CallbackContext context)
     {
         if(!context.started || !_orbGameObject.activeSelf) return;
 
         Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
 
-        _orb.Loose(cursorWorldPosition);
+        _orb.Impulse(cursorWorldPosition);
     }
 
     /// <summary>Called by the Inertia Stabilizer input action (Left Ctrl). Toggles inertia stabilizer on/off.</summary>

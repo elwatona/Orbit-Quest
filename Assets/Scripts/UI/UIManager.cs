@@ -161,7 +161,6 @@ public class UIManager : MonoBehaviour
     }
     public void TogglePanel(int index)
     {
-        if (!_developerMode) return;
         switch (index)
         {
             case 0: _controlsPanel.SetActive(!_controlsPanel.activeSelf); break;
