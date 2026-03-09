@@ -11,32 +11,36 @@ public static class AstroDefaultConfig
         bodyData = GetDefaultBodyData(type);
     }
 
+    /// <summary>
+    /// Planet: orbits one sun, tight orbit, strong pull toward center (short-range mobility).
+    /// Asteroid (comet): orbits two suns, looser orbit, less pull (greater mobility).
+    /// </summary>
     public static OrbitData GetDefaultOrbitData(AstroType type)
     {
         var data = new OrbitData { type = type };
         switch (type)
         {
             case AstroType.Planet:
-                data.radius = 5f;
-                data.gravity = 25f;
-                data.tangentialForce = 3f;
-                data.radialDamping = 0.75f;
+                data.radius = 4f;
+                data.gravity = 100f;
+                data.tangentialForce = 4.5f;
+                data.radialDamping = 1f;
                 break;
             case AstroType.Asteroid:
-                data.radius = 2f;
-                data.gravity = 18f;
-                data.tangentialForce = 4f;
-                data.radialDamping = 0.9f;
+                data.radius = 7f;
+                data.gravity = 100f;
+                data.tangentialForce = 2.5f;
+                data.radialDamping = 0.6f;
                 break;
             case AstroType.Sun:
                 data.radius = 6f;
-                data.gravity = 28f;
+                data.gravity = 100f;
                 data.tangentialForce = 2.5f;
                 data.radialDamping = 0.7f;
                 break;
             default:
                 data.radius = 3f;
-                data.gravity = 22f;
+                data.gravity = 100f;
                 data.tangentialForce = 3.5f;
                 data.radialDamping = 0.85f;
                 break;

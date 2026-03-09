@@ -83,7 +83,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
                 _orbitData.radius = value;
                 UpdateOrbitValues();
             }, group: "Orbit"),
-            new("Gravity", 15f, 30f, _orbitData.gravity, value =>
+            new("Gravity", 50f, 200f, _orbitData.gravity, value =>
             {
                 _orbitData.gravity = value;
                 UpdateOrbitValues();

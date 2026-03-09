@@ -3,6 +3,9 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    const string ActionMapPlayer = "Player";
+    const string ActionMousePosition = "Mouse Position";
+
     [Header("Astro Creation")]
     [SerializeField] AstroFactory _astroFactory;
 
@@ -10,15 +13,56 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject _orbGameObject;
     [SerializeField] Orb _orb;
     [SerializeField] UIManager _uiManager;
+    [SerializeField] PlayerInput _playerInput;
+
+    InputAction _mousePositionAction;
+    Vector2 _lastMoveValue;
+    bool _applyThrustHeld;
+
     void Awake()
     {
         CacheReferences();
+        if (!_playerInput) _playerInput = GetComponent<PlayerInput>();
+        if (_playerInput != null)
+            _mousePositionAction = _playerInput.actions.FindAction(ActionMapPlayer + "/" + ActionMousePosition, true);
+    }
+
+    void Update()
+    {
+        if (_orb == null || !_orbGameObject.activeSelf) return;
+        if (_mousePositionAction == null || !_mousePositionAction.enabled) return;
+
+        Vector2 screenPos = _mousePositionAction.ReadValue<Vector2>();
+        Vector3 cursorWorld = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
+        cursorWorld.z = 0f;
+        Vector2 orbPos = _orbGameObject.transform.position;
+        Vector2 direction = new Vector2(cursorWorld.x - orbPos.x, cursorWorld.y - orbPos.y);
+        if (direction.sqrMagnitude > 0.0001f)
+        {
+            _orb.SetAimDirection(direction.normalized);
+            if (_applyThrustHeld)
+                _orb.SetThrustInput(direction.normalized);
+        }
     }
 
     void CacheReferences()
     {
         if (!_orbGameObject) _orbGameObject = transform.Find("Orb").gameObject;
         if (!_orb) _orb = _orbGameObject?.GetComponent<Orb>();
+    }
+
+    /// <summary>Called by the Apply Thrust input action (right click). Wire Player/Apply Thrust (Started and Canceled) to this. While held, thrust is applied continuously towards the cursor.</summary>
+    public void ApplyThrust(InputAction.CallbackContext context)
+    {
+        if (!_orbGameObject.activeSelf || _orb == null) return;
+
+        if (context.started)
+            _applyThrustHeld = true;
+        else if (context.canceled)
+        {
+            _applyThrustHeld = false;
+            _orb.SetThrustInput(_lastMoveValue);
+        }
     }
 
     public void SetSpawnPoint(InputAction.CallbackContext context)
@@ -46,6 +90,15 @@ public class PlayerController : MonoBehaviour
 
         _orb.Loose(cursorWorldPosition);
     }
+
+    /// <summary>Called by the Move input action. Passes the movement vector to the orb for thrust (used when Apply Thrust is not held).</summary>
+    public void Move(InputAction.CallbackContext context)
+    {
+        _lastMoveValue = context.ReadValue<Vector2>();
+        if (_orb != null && !_applyThrustHeld)
+            _orb.SetThrustInput(_lastMoveValue);
+    }
+
     public void Respawn(InputAction.CallbackContext context)
     {
         if (!context.started) return;

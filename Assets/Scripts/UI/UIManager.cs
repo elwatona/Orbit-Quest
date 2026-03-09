@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject _orbiterPanel;
     [SerializeField] Transform _orbiterPropertyContainer;
     [SerializeField] OrbiterTargetsView _orbiterTargetsView;
+    [SerializeField] GameObject _cancelPickingButton;
     [SerializeField] GameObject _controlsPanel;
     [SerializeField] GameObject _debugPanel;
     [SerializeField] TextMeshProUGUI _debugText;
@@ -40,6 +41,8 @@ public class UIManager : MonoBehaviour
         _inspectorPanel.SetActive(false);
         if (_orbiterPanel != null)
             _orbiterPanel.SetActive(false);
+        if (_cancelPickingButton != null)
+            _cancelPickingButton.SetActive(false);
     }
 
     public void SelectTarget(IEditable target)
@@ -53,6 +56,8 @@ public class UIManager : MonoBehaviour
                 _orbiterTargetsView?.Refresh();
             }
             _isPickingTargetForOrbiter = false;
+            SetInspectorPanelsActive(true);
+            HideCancelPickingButton();
             return;
         }
 
@@ -86,16 +91,39 @@ public class UIManager : MonoBehaviour
     {
         var orbiter = (_currentTarget as Component)?.GetComponent<TransformOrbiter>();
         _isPickingTargetForOrbiter = orbiter != null;
+        if (_isPickingTargetForOrbiter)
+        {
+            SetInspectorPanelsActive(false);
+            if (_cancelPickingButton != null)
+                _cancelPickingButton.SetActive(true);
+        }
     }
 
     public void CancelPickingTargetForOrbiter()
     {
         _isPickingTargetForOrbiter = false;
+        SetInspectorPanelsActive(true);
+        HideCancelPickingButton();
+    }
+
+    void HideCancelPickingButton()
+    {
+        if (_cancelPickingButton != null)
+            _cancelPickingButton.SetActive(false);
+    }
+
+    void SetInspectorPanelsActive(bool active)
+    {
+        if (_inspectorPanel != null)
+            _inspectorPanel.SetActive(active);
+        if (_orbiterPanel != null)
+            _orbiterPanel.SetActive(active);
     }
 
     public void ClosePanel()
     {
         _isPickingTargetForOrbiter = false;
+        HideCancelPickingButton();
         _currentTarget?.Deselected();
         _panelController.Clear();
         _orbiterPanelController.Clear();
@@ -125,6 +153,7 @@ public class UIManager : MonoBehaviour
     public void DeleteTarget()
     {
         _isPickingTargetForOrbiter = false;
+        HideCancelPickingButton();
         _panelController.Clear();
         _orbiterPanelController.Clear();
         _orbiterTargetsView?.Clear();
