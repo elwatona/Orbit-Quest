@@ -8,7 +8,7 @@ public enum EscapeMode
     Velocity
 }
 
-public enum OrbitMode
+public enum MovementMode
 {
     Auto,
     Manual
@@ -58,7 +58,8 @@ public class RigidbodyOrbiter
     // Lifecycle
     // ---------------------------------------------------------
 
-    public void FixedUpdate()
+    /// <param name="thrustInput">Current frame thrust direction. Inertia stabilizer only applies when this is released (zero).</param>
+    public void FixedUpdate(Vector2 thrustInput)
     {
         if (_graceTimer > 0f)
         {
@@ -71,7 +72,7 @@ public class RigidbodyOrbiter
 
         if (_capturedOrbit != null)
         {
-            if (_settings.orbitMode == OrbitMode.Auto)
+            if (_settings.movementMode == MovementMode.Auto)
                 ApplyStabilization(_capturedOrbit.Data);
             else
                 ApplyMinThrustAssist(_capturedOrbit.Data);
@@ -79,9 +80,13 @@ public class RigidbodyOrbiter
             if (_isDetaching)
                 UpdateDetach(_capturedOrbit.Data);
         }
+        else if (_settings.inertiaStabilizer && thrustInput.sqrMagnitude < 0.0001f)
+        {
+            ApplyFreeFlightDamping();
+        }
     }
 
-    /// <summary>Applies thrust in the given 2D direction using ForceMode.Acceleration (mass-independent).</summary>
+    /// <summary>Applies thrust in the given 2D direction using ForceMode.Acceleration (mass-independent). When inertia stabilizer is ON, does not add force in thrust direction if velocity in that direction already exceeds stabilizerMaxThrustSpeed.</summary>
     public void ApplyThrust(Vector2 direction)
     {
         if (direction.sqrMagnitude < 0.0001f)
@@ -90,6 +95,14 @@ public class RigidbodyOrbiter
         float magnitude = _settings.thrustForce;
         if (magnitude < 0.0001f)
             return;
+
+        if (_settings.inertiaStabilizer)
+        {
+            float velocityInThrustDir = Vector3.Dot(_rb.linearVelocity, worldDirection);
+            if (velocityInThrustDir >= _settings.stabilizerMaxThrustSpeed)
+                return;
+        }
+
         _rb.AddForce(worldDirection * magnitude, ForceMode.Acceleration);
     }
 
@@ -152,7 +165,7 @@ public class RigidbodyOrbiter
     {
         if (_capturedOrbit == source)
         {
-            if (_settings.orbitMode == OrbitMode.Manual)
+            if (_settings.movementMode == MovementMode.Manual)
             {
                 _isDetaching = false;
                 ReleaseCapturedOrbit();
@@ -321,6 +334,48 @@ public class RigidbodyOrbiter
     }
 
     // ---------------------------------------------------------
+    // Inertia stabilizer — damp velocity when free (no captured orbit)
+    // ---------------------------------------------------------
+
+    void ApplyFreeFlightDamping()
+    {
+        Vector3 referenceVelocity = GetNearestReferenceVelocity();
+        Vector3 relativeVelocity = _rb.linearVelocity - referenceVelocity;
+
+        if (relativeVelocity.sqrMagnitude < 0.01f)
+        {
+            _rb.linearVelocity = referenceVelocity;
+            return;
+        }
+
+        float dampTime = Mathf.Max(_settings.inertiaDampTime, 0.1f);
+        float dampFactor = 1f / dampTime;
+        _rb.AddForce(-relativeVelocity * dampFactor, ForceMode.Acceleration);
+    }
+
+    Vector3 GetNearestReferenceVelocity()
+    {
+        if (_gravitySources.Count == 0)
+            return Vector3.zero;
+
+        IOrbitable nearest = null;
+        float nearestDistSq = float.MaxValue;
+        for (int i = 0; i < _gravitySources.Count; i++)
+        {
+            IOrbitable source = _gravitySources[i];
+            if (!IsValidSource(source))
+                continue;
+            float distSq = (_transform.position - source.Data.transform.position).sqrMagnitude;
+            if (distSq < nearestDistSq)
+            {
+                nearestDistSq = distSq;
+                nearest = source;
+            }
+        }
+        return nearest != null ? nearest.Data.velocity : Vector3.zero;
+    }
+
+    // ---------------------------------------------------------
     // Grab — orbit captures the orb on trigger enter
     // ---------------------------------------------------------
 
@@ -372,7 +427,7 @@ public class RigidbodyOrbiter
         if (tangentialVelocity.sqrMagnitude > 0.001f && Vector3.Dot(tangentialVelocity.normalized, tangentDir) < 0f)
             tangentDir = -tangentDir;
 
-        if (_settings.orbitMode == OrbitMode.Auto)
+        if (_settings.movementMode == MovementMode.Auto)
         {
             float effectiveDistance = Mathf.Lerp(distance, data.radius, _effectiveSettingsTarget.stabilization);
             float orbitalSpeed = Mathf.Min(Mathf.Sqrt(data.gravity / effectiveDistance) * speedScale, _effectiveSettingsTarget.maxSpeed);
@@ -559,7 +614,7 @@ public class RigidbodyOrbiter
 
         return new OrbiterSettings
         {
-            orbitMode = baseSettings.orbitMode,
+            movementMode = baseSettings.movementMode,
             maxSpeed = Mathf.Clamp(orbitalSpeed * 2f, 5f, 20f),
             orbitSpeedScale = 2f,
             stabilization = Mathf.Clamp(0.2f + (data.tangentialForce - 2f) / 3f * 0.6f, 0f, 1f),
@@ -570,6 +625,9 @@ public class RigidbodyOrbiter
             escapeMode = baseSettings.escapeMode,
             escapeForce = baseSettings.escapeForce,
             detachSpins = baseSettings.detachSpins,
+            inertiaStabilizer = baseSettings.inertiaStabilizer,
+            inertiaDampTime = baseSettings.inertiaDampTime,
+            stabilizerMaxThrustSpeed = baseSettings.stabilizerMaxThrustSpeed,
         };
     }
 
@@ -586,7 +644,7 @@ public class RigidbodyOrbiter
     {
         return new OrbiterSettings
         {
-            orbitMode = to.orbitMode,
+            movementMode = to.movementMode,
             maxSpeed = Mathf.Lerp(from.maxSpeed, to.maxSpeed, t),
             orbitSpeedScale = Mathf.Lerp(from.orbitSpeedScale, to.orbitSpeedScale, t),
             stabilization = Mathf.Lerp(from.stabilization, to.stabilization, t),
@@ -597,6 +655,9 @@ public class RigidbodyOrbiter
             escapeMode = to.escapeMode,
             escapeForce = to.escapeForce,
             detachSpins = to.detachSpins,
+            inertiaStabilizer = to.inertiaStabilizer,
+            inertiaDampTime = Mathf.Lerp(from.inertiaDampTime, to.inertiaDampTime, t),
+            stabilizerMaxThrustSpeed = Mathf.Lerp(from.stabilizerMaxThrustSpeed, to.stabilizerMaxThrustSpeed, t),
         };
     }
 
@@ -613,8 +674,9 @@ public class RigidbodyOrbiter
 [Serializable]
 public struct OrbiterSettings
 {
-    [Header("Orbit")]
-    public OrbitMode orbitMode;
+    [Header("Movement")]
+    [Tooltip("Auto: full orbit stabilization. Manual: free direction from orbit impulses + boost toward cursor.")]
+    public MovementMode movementMode;
     [Range(5f, 20f)] public float maxSpeed;
     [Range(0.5f, 3f)] public float orbitSpeedScale;
     [Range(0f, 1f)] public float stabilization;
@@ -633,9 +695,17 @@ public struct OrbiterSettings
     [Header("Detach")]
     [Range(1, 5)] public int detachSpins;
 
+    [Header("Inertia")]
+    [Tooltip("When ON, dampens velocity to reference (nearest orbit or world) over inertiaDampTime seconds when not captured.")]
+    public bool inertiaStabilizer;
+    [Tooltip("Time in seconds to bring relative velocity to zero when stabilizer is ON and free.")]
+    [Range(0.5f, 5f)] public float inertiaDampTime;
+    [Tooltip("When stabilizer is ON: no thrust is applied in the thrust direction if velocity in that direction already exceeds this value.")]
+    [Range(1f, 25f)] public float stabilizerMaxThrustSpeed;
+
     public static OrbiterSettings Default => new()
     {
-        orbitMode = OrbitMode.Auto,
+        movementMode = MovementMode.Auto,
         maxSpeed = 14f,
         orbitSpeedScale = 2f,
         stabilization = 0.4f,
@@ -645,5 +715,8 @@ public struct OrbiterSettings
         minThrustAssist = 2f,
         escapeForce = 5f,
         detachSpins = 1,
+        inertiaStabilizer = true,
+        inertiaDampTime = 2f,
+        stabilizerMaxThrustSpeed = 10f,
     };
 }

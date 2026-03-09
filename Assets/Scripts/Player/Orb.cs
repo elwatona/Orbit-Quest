@@ -24,11 +24,18 @@ public class Orb : MonoBehaviour
 
     public EscapeMode EscapeMode => _orbiterSettings.escapeMode;
     public float EscapeForce => _orbiterSettings.escapeForce;
-    public OrbitMode OrbitMode => _orbiterSettings.orbitMode;
+    public MovementMode MovementMode => _orbiterSettings.movementMode;
+    public bool InertiaStabilizer => _orbiterSettings.inertiaStabilizer;
 
-    public void SetOrbitMode(OrbitMode mode)
+    public void SetMovementMode(MovementMode mode)
     {
-        _orbiterSettings.orbitMode = mode;
+        _orbiterSettings.movementMode = mode;
+        _orbiterController.UpdateSettings(_orbiterSettings);
+    }
+
+    public void ToggleInertiaStabilizer()
+    {
+        _orbiterSettings.inertiaStabilizer = !_orbiterSettings.inertiaStabilizer;
         _orbiterController.UpdateSettings(_orbiterSettings);
     }
 
@@ -60,7 +67,7 @@ public class Orb : MonoBehaviour
     }
     void FixedUpdate()
     {
-        _orbiterController?.FixedUpdate();
+        _orbiterController?.FixedUpdate(_thrustInput);
         _orbiterController.ApplyThrust(_thrustInput);
     }
 

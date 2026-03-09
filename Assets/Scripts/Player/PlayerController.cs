@@ -93,6 +93,13 @@ public class PlayerController : MonoBehaviour
         _orb.Loose(cursorWorldPosition);
     }
 
+    /// <summary>Called by the Inertia Stabilizer input action (Left Ctrl). Toggles inertia stabilizer on/off.</summary>
+    public void ToggleInertiaStabilizer(InputAction.CallbackContext context)
+    {
+        if (!context.started || !_orbGameObject.activeSelf || _orb == null) return;
+        _orb.ToggleInertiaStabilizer();
+    }
+
     /// <summary>Called by the Move input action. Passes the movement vector to the orb for thrust (used when Apply Thrust is not held).</summary>
     public void Move(InputAction.CallbackContext context)
     {
