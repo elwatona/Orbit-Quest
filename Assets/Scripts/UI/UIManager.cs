@@ -15,11 +15,15 @@ public class UIManager : MonoBehaviour
     [SerializeField] PropertyRow _rowPrefab;
     [SerializeField] GroupHeaderView _groupHeaderPrefab;
     [SerializeField] TextMeshProUGUI _version;
+    [SerializeField] TextMeshProUGUI _developerModeLabel;
 
     private PanelController _panelController;
     private PanelController _orbiterPanelController;
     private IEditable _currentTarget;
     private bool _isPickingTargetForOrbiter;
+    private bool _developerMode;
+
+    public bool IsDeveloperMode => _developerMode;
 
     void Awake()
     {
@@ -43,10 +47,32 @@ public class UIManager : MonoBehaviour
             _orbiterPanel.SetActive(false);
         if (_cancelPickingButton != null)
             _cancelPickingButton.SetActive(false);
+        UpdateDeveloperModeLabel();
+    }
+
+    /// <summary>Sets developer mode from PlayerController. Closes panels and updates label when disabled.</summary>
+    public void SetDeveloperMode(bool value)
+    {
+        _developerMode = value;
+        if (!_developerMode)
+        {
+            ClosePanel();
+            if (_controlsPanel != null) _controlsPanel.SetActive(false);
+            if (_debugPanel != null) _debugPanel.SetActive(false);
+        }
+        UpdateDeveloperModeLabel();
+    }
+
+    void UpdateDeveloperModeLabel()
+    {
+        if (_developerModeLabel == null) return;
+        _developerModeLabel.text = _developerMode ? "Developer Mode On" : "Developer Mode Off";
+        _developerModeLabel.color = _developerMode ? Color.green : Color.white;
     }
 
     public void SelectTarget(IEditable target)
     {
+        if (!_developerMode) return;
         if (_isPickingTargetForOrbiter)
         {
             var orbiter = (_currentTarget as Component)?.GetComponent<TransformOrbiter>();
@@ -135,6 +161,7 @@ public class UIManager : MonoBehaviour
     }
     public void TogglePanel(int index)
     {
+        if (!_developerMode) return;
         switch (index)
         {
             case 0: _controlsPanel.SetActive(!_controlsPanel.activeSelf); break;

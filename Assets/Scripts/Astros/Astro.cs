@@ -13,6 +13,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
     [SerializeField] float _rotationSpeed = 5f;
 
     [SerializeField] Transform _transform, _baseTransform, _orbitTransform;
+    [SerializeField] UIManager _uiManager;
     private IOrbitable _orbit;
     private BodyShader _baseShader;
     private TransformOrbiter _orbiter;
@@ -47,6 +48,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
         if(_orbit == null) _orbit = _orbitTransform?.GetComponent<IOrbitable>();
         if(_baseShader == null) _baseShader = new BodyShader(_baseTransform?.GetComponent<Renderer>());
         if(_orbiter == null) _orbiter = GetComponent<TransformOrbiter>();
+        if(_uiManager == null) _uiManager = FindFirstObjectByType<UIManager>();
     }
     void UpdateBaseValues()
     {
@@ -136,6 +138,9 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (_uiManager == null) _uiManager = FindFirstObjectByType<UIManager>();
+        if (_uiManager == null || !_uiManager.IsDeveloperMode) return;
+
         Vector2 desiredPosition = Camera.main.ScreenToWorldPoint(eventData.position);
         _transform.position = desiredPosition;
     }

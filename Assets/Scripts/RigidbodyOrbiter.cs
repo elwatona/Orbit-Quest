@@ -109,16 +109,18 @@ public class RigidbodyOrbiter
 
         _gravitySources.Clear();
         _rb.linearVelocity = Vector3.zero;
-        _rb.useGravity = true;
+        _rb.angularVelocity = Vector3.zero;
     }
 
     public void OnDisable()
     {
         _isDetaching = false;
         ReleaseCapturedOrbit();
-
-        _rb.linearVelocity = Vector3.zero;
+        _lastReleasedOrbit = null;
+        _graceTimer = 0f;
         _gravitySources.Clear();
+        _rb.linearVelocity = Vector3.zero;
+        _rb.angularVelocity = Vector3.zero;
     }
 
     // ---------------------------------------------------------
@@ -136,9 +138,6 @@ public class RigidbodyOrbiter
         if (!_gravitySources.Contains(source))
             _gravitySources.Add(source);
 
-        if (_rb.useGravity)
-            _rb.useGravity = false;
-
         // Re-entering the captured orbit's zone cancels detach
         if (source == _capturedOrbit && _isDetaching)
         {
@@ -151,19 +150,25 @@ public class RigidbodyOrbiter
 
     public void RemoveGravitySource(IOrbitable source)
     {
-        // If this is the captured orbit, begin detach countdown instead of releasing.
-        // Keep the source in the gravity list so forces continue during the final spins.
         if (_capturedOrbit == source)
         {
-            if (!_isDetaching)
-                BeginDetach();
+            if (_settings.orbitMode == OrbitMode.Manual)
+            {
+                _isDetaching = false;
+                ReleaseCapturedOrbit();
+                _lastReleasedOrbit = null;
+                _graceTimer = 0f;
+                _gravitySources.Remove(source);
+            }
+            else
+            {
+                if (!_isDetaching)
+                    BeginDetach();
+            }
             return;
         }
 
         _gravitySources.Remove(source);
-
-        if (_gravitySources.Count == 0)
-            _rb.useGravity = true;
     }
 
     // ---------------------------------------------------------
@@ -194,9 +199,6 @@ public class RigidbodyOrbiter
 
             ApplyGravity(source.Data);
         }
-
-        if (_gravitySources.Count == 0 && !_rb.useGravity)
-            _rb.useGravity = true;
     }
 
     void ApplyGravity(OrbitData data)
@@ -426,9 +428,6 @@ public class RigidbodyOrbiter
         ReleaseCapturedOrbit();
 
         _gravitySources.Remove(detachedOrbit);
-
-        if (_gravitySources.Count == 0)
-            _rb.useGravity = true;
     }
 
     // ---------------------------------------------------------

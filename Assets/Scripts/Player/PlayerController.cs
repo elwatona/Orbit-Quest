@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     InputAction _mousePositionAction;
     Vector2 _lastMoveValue;
     bool _applyThrustHeld;
+    bool _developerMode;
 
     void Awake()
     {
@@ -76,6 +77,7 @@ public class PlayerController : MonoBehaviour
     }
     public void Aim(InputAction.CallbackContext context)
     {
+        if (_orb == null || !_orbGameObject.activeSelf) return;
         if (context.started)
             _orb.SetAiming(true);
         else if (context.canceled)
@@ -83,7 +85,7 @@ public class PlayerController : MonoBehaviour
     }
     public void Loose(InputAction.CallbackContext context)
     {
-        if(!context.started) return;
+        if(!context.started || !_orbGameObject.activeSelf) return;
 
         Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
@@ -95,7 +97,8 @@ public class PlayerController : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         _lastMoveValue = context.ReadValue<Vector2>();
-        if (_orb != null && !_applyThrustHeld)
+        if (_orb == null || !_orbGameObject.activeSelf) return;
+        if (!_applyThrustHeld)
             _orb.SetThrustInput(_lastMoveValue);
     }
 
@@ -105,6 +108,8 @@ public class PlayerController : MonoBehaviour
         if (HasModifiers(context)) _orbGameObject.SetActive(false);
         if (!_orbGameObject.activeSelf)
         {
+            _applyThrustHeld = false;
+            _lastMoveValue = Vector2.zero;
             _orbGameObject.transform.localPosition = Vector3.zero;
             _orbGameObject.SetActive(true);
         }
@@ -133,6 +138,14 @@ public class PlayerController : MonoBehaviour
 
         _astroFactory.Create(type, cursorWorldPosition);
     }
+    /// <summary>Called by the Developer Mode input action (F1). Toggles developer mode and notifies UIManager (and any other consumers) with the new value.</summary>
+    public void DeveloperMode(InputAction.CallbackContext context)
+    {
+        if (!context.started) return;
+        _developerMode = !_developerMode;
+        _uiManager?.SetDeveloperMode(_developerMode);
+    }
+
     public void TogglePanel(InputAction.CallbackContext context)
     {
         if(!context.started) return;

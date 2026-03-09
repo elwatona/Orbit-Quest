@@ -53,6 +53,7 @@ public class Orb : MonoBehaviour
     void OnEnable()
     {
         _thrustInput = Vector2.zero;
+        _aimDirection = Vector2.zero;
         _orbiterController.OnEnable();
         _pendingLooseOncePerDeath = true;
         OnSpawn?.Invoke();
