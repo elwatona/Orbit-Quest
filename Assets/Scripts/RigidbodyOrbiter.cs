@@ -8,12 +8,6 @@ public enum EscapeMode
     Velocity
 }
 
-public enum MovementMode
-{
-    Auto,
-    Manual
-}
-
 [Serializable]
 public class RigidbodyOrbiter
 {
@@ -26,19 +20,6 @@ public class RigidbodyOrbiter
     private IOrbitable _lastReleasedOrbit;
     private float _graceTimer;
     private OrbiterSettings _settings;
-
-    // Detach spin tracking
-    private bool _isDetaching;
-    private float _accumulatedAngle;
-    private float _previousAngle;
-
-    // Settle-in: OrbiterSettings derived from orbit, blended in over 1s
-    private float _orbitEnterTime;
-    private float _captureDistance;
-    private float _captureTangentialSpeed;
-    private OrbiterSettings _effectiveSettingsAtCapture;
-    private OrbiterSettings _effectiveSettingsTarget;
-    private OrbiterSettings _effectiveSettings;
 
     // Trajectory prediction cache
     private readonly Vector3[] _trajectoryPoints = new Vector3[2];
@@ -71,15 +52,7 @@ public class RigidbodyOrbiter
         ApplyGravitySources();
 
         if (_capturedOrbit != null)
-        {
-            if (_settings.movementMode == MovementMode.Auto)
-                ApplyStabilization(_capturedOrbit.Data);
-            else
-                ApplyMinThrustAssist(_capturedOrbit.Data);
-
-            if (_isDetaching)
-                UpdateDetach(_capturedOrbit.Data);
-        }
+            ApplyMinThrustAssist(_capturedOrbit.Data);
         else if (_settings.inertiaStabilizer && thrustInput.sqrMagnitude < 0.0001f)
         {
             ApplyFreeFlightDamping();
@@ -112,14 +85,6 @@ public class RigidbodyOrbiter
         _lastReleasedOrbit = null;
         _graceTimer = 0f;
 
-        _isDetaching = false;
-        _accumulatedAngle = 0f;
-        _previousAngle = 0f;
-        _orbitEnterTime = 0f;
-        _captureDistance = 0f;
-        _captureTangentialSpeed = 0f;
-        _effectiveSettings = _settings;
-
         _gravitySources.Clear();
         _rb.linearVelocity = Vector3.zero;
         _rb.angularVelocity = Vector3.zero;
@@ -127,7 +92,6 @@ public class RigidbodyOrbiter
 
     public void OnDisable()
     {
-        _isDetaching = false;
         ReleaseCapturedOrbit();
         _lastReleasedOrbit = null;
         _graceTimer = 0f;
@@ -151,13 +115,6 @@ public class RigidbodyOrbiter
         if (!_gravitySources.Contains(source))
             _gravitySources.Add(source);
 
-        // Re-entering the captured orbit's zone cancels detach
-        if (source == _capturedOrbit && _isDetaching)
-        {
-            _isDetaching = false;
-            return;
-        }
-
         GrabOrbit(source);
     }
 
@@ -165,19 +122,10 @@ public class RigidbodyOrbiter
     {
         if (_capturedOrbit == source)
         {
-            if (_settings.movementMode == MovementMode.Manual)
-            {
-                _isDetaching = false;
-                ReleaseCapturedOrbit();
-                _lastReleasedOrbit = null;
-                _graceTimer = 0f;
-                _gravitySources.Remove(source);
-            }
-            else
-            {
-                if (!_isDetaching)
-                    BeginDetach();
-            }
+            ReleaseCapturedOrbit();
+            _lastReleasedOrbit = null;
+            _graceTimer = 0f;
+            _gravitySources.Remove(source);
             return;
         }
 
@@ -197,10 +145,7 @@ public class RigidbodyOrbiter
             if (!IsValidSource(source))
             {
                 if (_capturedOrbit == source)
-                {
-                    _isDetaching = false;
                     ReleaseCapturedOrbit();
-                }
 
                 _gravitySources.RemoveAt(i);
                 continue;
@@ -229,80 +174,7 @@ public class RigidbodyOrbiter
     }
 
     // ---------------------------------------------------------
-    // Phase 2 — Stabilization forces (only on the captured orbit)
-    // ---------------------------------------------------------
-
-    void ApplyStabilization(OrbitData data)
-    {
-        Vector3 relativeVelocity = _rb.linearVelocity - data.velocity;
-        Vector3 toCenter = data.transform.position - _transform.position;
-        float distance = toCenter.magnitude;
-
-        if (distance < 0.01f)
-            return;
-
-        Vector3 centerDir = toCenter.normalized;
-
-        // Single gradual ramp over 1s (smooth curve: gentle at start, full at end)
-        float rawT = (Time.fixedTime - _orbitEnterTime) / 1f;
-        float settleT = Mathf.Clamp01(rawT);
-        float settleStrength = Mathf.SmoothStep(0f, 1f, settleT);
-
-        _effectiveSettings = LerpOrbiterSettingsForSettle(_effectiveSettingsAtCapture, _effectiveSettingsTarget, settleStrength);
-
-        // Decompose velocity into radial and tangential components
-        Vector3 radialVelocity = Vector3.Project(relativeVelocity, centerDir);
-        Vector3 tangentialVelocity = relativeVelocity - radialVelocity;
-        float tangentialSpeed = tangentialVelocity.magnitude;
-
-        Vector3 tangentDir = tangentialSpeed > 0.001f
-            ? tangentialVelocity.normalized
-            : Vector3.Cross(centerDir, Vector3.forward).normalized;
-
-        // Target radius: from capture distance to orbit radius over 1s (same smooth ramp)
-        float targetRadius = Mathf.Lerp(_captureDistance, data.radius, settleStrength);
-
-        // -------------------
-        // RADIUS CORRECTION (gradual within 1s)
-        // -------------------
-        float radiusError = distance - targetRadius;
-        float correctionForce = radiusError * _effectiveSettings.radiusCorrection * settleStrength;
-        _rb.AddForce(centerDir * correctionForce, ForceMode.Acceleration);
-
-        // -------------------
-        // TANGENTIAL MAINTENANCE (gradual within 1s)
-        // -------------------
-        float speedScale = _effectiveSettings.orbitSpeedScale > 0.01f ? _effectiveSettings.orbitSpeedScale : 2f;
-        float idealSpeedAtTargetRadius = Mathf.Sqrt(data.gravity / Mathf.Max(targetRadius, 0.1f)) * speedScale;
-        float targetSpeed = Mathf.Lerp(_captureTangentialSpeed, Mathf.Min(idealSpeedAtTargetRadius, _effectiveSettings.maxSpeed), settleStrength);
-        float speedError = targetSpeed - tangentialSpeed;
-        float tangentialAssist = speedError * data.tangentialForce * _effectiveSettings.stabilization * settleStrength;
-        if (speedError < 0f && settleT < 1f)
-            tangentialAssist *= 0.25f;
-        _rb.AddForce(tangentDir * tangentialAssist, ForceMode.Acceleration);
-
-        // -------------------
-        // SPEED LIMITING (gradual within 1s)
-        // -------------------
-        if (tangentialSpeed > _effectiveSettings.maxSpeed)
-        {
-            float excess = tangentialSpeed - _effectiveSettings.maxSpeed;
-            float limitStrength = settleT < 1f ? Mathf.Lerp(0.2f, 1f, settleStrength) : 1f;
-            _rb.AddForce(-tangentDir * excess * _effectiveSettings.speedDamping * limitStrength, ForceMode.Acceleration);
-        }
-
-        // -------------------
-        // RADIAL DAMPING (gradual within 1s)
-        // -------------------
-        float normalizedDeviation = Mathf.Abs(radiusError) / Mathf.Max(targetRadius, 0.1f);
-        float dampingStrength = data.radialDamping * (1f + normalizedDeviation * _effectiveSettings.stabilization * 2f) * settleStrength;
-        _rb.AddForce(-radialVelocity * dampingStrength, ForceMode.Acceleration);
-
-        Debug.DrawLine(_transform.position, data.transform.position, Color.yellow);
-    }
-
-    // ---------------------------------------------------------
-    // Manual mode — gravity only + minimum tangential assist to stay in orbit
+    // Captured orbit — gravity + minimum tangential assist to stay in orbit
     // ---------------------------------------------------------
 
     void ApplyMinThrustAssist(OrbitData data)
@@ -389,100 +261,14 @@ public class RigidbodyOrbiter
 
         if (_capturedOrbit != null)
         {
-            _isDetaching = false;
             _capturedOrbit.ExitOrbit();
             _orbitExit?.Invoke();
         }
 
         _capturedOrbit = orbit;
-        _orbitEnterTime = Time.fixedTime;
         orbit.EnterOrbit();
 
         _orbitEnter?.Invoke();
-
-        OrbitData data = orbit.Data;
-
-        // OrbiterSettings from orbit only (escape/detach from _settings), applied gradually over 1s
-        _effectiveSettingsTarget = ComputeOrbiterSettingsFromOrbit(data, _settings);
-        _effectiveSettingsAtCapture = SoftenForCapture(_effectiveSettingsTarget);
-
-        Vector3 toCenter = data.transform.position - _transform.position;
-        float distance = toCenter.magnitude;
-
-        if (distance < 0.01f)
-            return;
-
-        Vector3 centerDir = toCenter.normalized;
-        Vector3 relativeVel = _rb.linearVelocity - data.velocity;
-        Vector3 tangentialVelocity = relativeVel - centerDir * Vector3.Dot(relativeVel, centerDir);
-
-        _captureDistance = distance;
-        _captureTangentialSpeed = tangentialVelocity.magnitude;
-
-        float speedScale = _effectiveSettingsTarget.orbitSpeedScale;
-        if (_captureTangentialSpeed < 0.1f)
-            _captureTangentialSpeed = Mathf.Min(Mathf.Sqrt(data.gravity / Mathf.Max(distance, 0.1f)) * speedScale, _effectiveSettingsTarget.maxSpeed);
-
-        Vector3 tangentDir = Vector3.Cross(centerDir, Vector3.forward).normalized;
-        if (tangentialVelocity.sqrMagnitude > 0.001f && Vector3.Dot(tangentialVelocity.normalized, tangentDir) < 0f)
-            tangentDir = -tangentDir;
-
-        if (_settings.movementMode == MovementMode.Auto)
-        {
-            float effectiveDistance = Mathf.Lerp(distance, data.radius, _effectiveSettingsTarget.stabilization);
-            float orbitalSpeed = Mathf.Min(Mathf.Sqrt(data.gravity / effectiveDistance) * speedScale, _effectiveSettingsTarget.maxSpeed);
-
-            Vector3 idealVelocity = tangentDir * orbitalSpeed + data.velocity;
-            float currentSpeed = _rb.linearVelocity.magnitude;
-            float idealSpeed = idealVelocity.magnitude;
-            Vector3 blended = Vector3.Lerp(_rb.linearVelocity, idealVelocity, 0.2f);
-            float blendedSpeed = blended.magnitude;
-            float minSpeed = Mathf.Lerp(currentSpeed, idealSpeed, 0.15f);
-            if (blendedSpeed < minSpeed && blendedSpeed > 0.001f)
-                blended = blended.normalized * Mathf.Min(minSpeed, _effectiveSettingsTarget.maxSpeed);
-            _rb.linearVelocity = blended;
-        }
-    }
-
-    // ---------------------------------------------------------
-    // Detach — spin countdown before releasing from orbit
-    // ---------------------------------------------------------
-
-    void BeginDetach()
-    {
-        _isDetaching = true;
-        _accumulatedAngle = 0f;
-
-        Vector3 toOrb = _transform.position - _capturedOrbit.Data.transform.position;
-        _previousAngle = Mathf.Atan2(toOrb.y, toOrb.x);
-    }
-
-    void UpdateDetach(OrbitData data)
-    {
-        Vector3 toOrb = _transform.position - data.transform.position;
-        float currentAngle = Mathf.Atan2(toOrb.y, toOrb.x);
-
-        float delta = currentAngle - _previousAngle;
-
-        // Wrap to [-PI, PI] to handle the ±180° boundary
-        if (delta > Mathf.PI) delta -= 2f * Mathf.PI;
-        if (delta < -Mathf.PI) delta += 2f * Mathf.PI;
-
-        _accumulatedAngle += Mathf.Abs(delta);
-        _previousAngle = currentAngle;
-
-        if (_accumulatedAngle >= _settings.detachSpins * Mathf.PI * 2f)
-            CompleteDetach();
-    }
-
-    void CompleteDetach()
-    {
-        _isDetaching = false;
-
-        IOrbitable detachedOrbit = _capturedOrbit;
-        ReleaseCapturedOrbit();
-
-        _gravitySources.Remove(detachedOrbit);
     }
 
     // ---------------------------------------------------------
@@ -499,7 +285,6 @@ public class RigidbodyOrbiter
 
         _capturedOrbit.ExitOrbit();
         _capturedOrbit = null;
-        _isDetaching = false;
 
         _orbitExit?.Invoke();
     }
@@ -518,7 +303,6 @@ public class RigidbodyOrbiter
             _ => (cursorWorldPosition - _transform.position).normalized,
         };
 
-        _isDetaching = false;
         ReleaseCapturedOrbit();
 
         _rb.linearVelocity = impulseDirection * currentSpeed;
@@ -578,7 +362,6 @@ public class RigidbodyOrbiter
 
     public Vector3[] TrajectoryPoints => _trajectoryPoints;
     public float Speed => _rb.linearVelocity.magnitude;
-    public EscapeMode EscapeMode => _settings.escapeMode;
 
     public void UpdateSettings(OrbiterSettings settings)
     {
@@ -588,60 +371,6 @@ public class RigidbodyOrbiter
     // ---------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------
-
-    /// <summary>Orbit-related values are derived only from the orbit; baseSettings is used only for escape and detach.</summary>
-    static OrbiterSettings ComputeOrbiterSettingsFromOrbit(OrbitData data, OrbiterSettings baseSettings)
-    {
-        float orbitalSpeed = Mathf.Sqrt(data.gravity / Mathf.Max(data.radius, 0.1f));
-
-        return new OrbiterSettings
-        {
-            movementMode = baseSettings.movementMode,
-            maxSpeed = Mathf.Clamp(orbitalSpeed * 2f, 5f, 20f),
-            orbitSpeedScale = 2f,
-            stabilization = Mathf.Clamp(0.2f + (data.tangentialForce - 2f) / 3f * 0.6f, 0f, 1f),
-            radiusCorrection = Mathf.Clamp(2f + data.gravity / 15f, 0f, 10f),
-            speedDamping = Mathf.Clamp(0.5f + data.radialDamping, 0f, 5f),
-            thrustForce = baseSettings.thrustForce,
-            minThrustAssist = baseSettings.minThrustAssist,
-            escapeMode = baseSettings.escapeMode,
-            impulseForce = baseSettings.impulseForce,
-            detachSpins = baseSettings.detachSpins,
-            inertiaStabilizer = baseSettings.inertiaStabilizer,
-            inertiaDampTime = baseSettings.inertiaDampTime,
-            stabilizerMaxThrustSpeed = baseSettings.stabilizerMaxThrustSpeed,
-        };
-    }
-
-    static OrbiterSettings SoftenForCapture(OrbiterSettings target)
-    {
-        var soft = target;
-        soft.radiusCorrection = target.radiusCorrection * 0.2f;
-        soft.stabilization = target.stabilization * 0.2f;
-        soft.speedDamping = target.speedDamping * 0.5f;
-        return soft;
-    }
-
-    static OrbiterSettings LerpOrbiterSettingsForSettle(OrbiterSettings from, OrbiterSettings to, float t)
-    {
-        return new OrbiterSettings
-        {
-            movementMode = to.movementMode,
-            maxSpeed = Mathf.Lerp(from.maxSpeed, to.maxSpeed, t),
-            orbitSpeedScale = Mathf.Lerp(from.orbitSpeedScale, to.orbitSpeedScale, t),
-            stabilization = Mathf.Lerp(from.stabilization, to.stabilization, t),
-            radiusCorrection = Mathf.Lerp(from.radiusCorrection, to.radiusCorrection, t),
-            speedDamping = Mathf.Lerp(from.speedDamping, to.speedDamping, t),
-            thrustForce = Mathf.Lerp(from.thrustForce, to.thrustForce, t),
-            minThrustAssist = Mathf.Lerp(from.minThrustAssist, to.minThrustAssist, t),
-            escapeMode = to.escapeMode,
-            impulseForce = to.impulseForce,
-            detachSpins = to.detachSpins,
-            inertiaStabilizer = to.inertiaStabilizer,
-            inertiaDampTime = Mathf.Lerp(from.inertiaDampTime, to.inertiaDampTime, t),
-            stabilizerMaxThrustSpeed = Mathf.Lerp(from.stabilizerMaxThrustSpeed, to.stabilizerMaxThrustSpeed, t),
-        };
-    }
 
     static bool IsValidSource(IOrbitable source)
     {
@@ -656,26 +385,14 @@ public class RigidbodyOrbiter
 [Serializable]
 public struct OrbiterSettings
 {
-    [Header("Movement")]
-    [Tooltip("Auto: full orbit stabilization. Manual: free direction from orbit impulses + boost toward cursor.")]
-    public MovementMode movementMode;
-    [Range(5f, 20f)] public float maxSpeed;
-    [Range(0.5f, 3f)] public float orbitSpeedScale;
-    [Range(0f, 1f)] public float stabilization;
-    [Range(0f, 10f)] public float radiusCorrection;
-    [Range(0f, 5f)] public float speedDamping;
-
     [Header("Thrust")]
     [Range(0f, 20f)] public float thrustForce;
-    [Tooltip("Manual mode only: max tangential acceleration to maintain orbit when below orbital speed.")]
+    [Tooltip("Max tangential acceleration to maintain orbit when below orbital speed.")]
     [Range(0f, 10f)] public float minThrustAssist;
 
     [Header("Impulse")]
     public EscapeMode escapeMode;
     [Range(0f, 30f)] public float impulseForce;
-
-    [Header("Detach")]
-    [Range(1, 5)] public int detachSpins;
 
     [Header("Inertia")]
     [Tooltip("When ON, dampens velocity to reference (nearest orbit or world) over inertiaDampTime seconds when not captured.")]
@@ -687,16 +404,10 @@ public struct OrbiterSettings
 
     public static OrbiterSettings Default => new()
     {
-        movementMode = MovementMode.Auto,
-        maxSpeed = 14f,
-        orbitSpeedScale = 2f,
-        stabilization = 0.4f,
-        radiusCorrection = 6f,
-        speedDamping = 2f,
         thrustForce = 5f,
         minThrustAssist = 2f,
+        escapeMode = EscapeMode.Cursor,
         impulseForce = 5f,
-        detachSpins = 1,
         inertiaStabilizer = true,
         inertiaDampTime = 2f,
         stabilizerMaxThrustSpeed = 10f,

@@ -168,7 +168,7 @@ public class UIManager : MonoBehaviour
         };
     }
 
-    void UpdateDebug(float speed, EscapeMode escapeMode)
+    void UpdateDebug(float speed)
     {
         if (!_debugPanel.activeSelf)
             return;

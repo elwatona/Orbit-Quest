@@ -81,7 +81,7 @@
                     "name": "Apply Thrust",
                     "type": "Button",
                     "id": "f9a0b1c2-6789-4d2e-0f3a-4b5c6d7e8f9a",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

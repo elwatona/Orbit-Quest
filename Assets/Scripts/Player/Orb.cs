@@ -5,7 +5,7 @@ using UnityEngine;
 public class Orb : MonoBehaviour
 {
     public static event Action OnOrbitEnter, OnOrbitExit, OnSpawn, OnDespawn;
-    public static event Action<float, EscapeMode> OnDebugUpdate;
+    public static event Action<float> OnDebugUpdate;
     public static event Action<bool> OnInertiaStabilizerChanged;
     public static event Action<bool> OnImpulseReadyChanged;
 
@@ -19,10 +19,8 @@ public class Orb : MonoBehaviour
     private Vector2 _aimDirection;
     private Vector3 _screenPosition;
     private bool _isAiming;
-    private bool _pendingImpulseOncePerDeath;
     private bool _isInScreen => _screenPosition.x > 0 & _screenPosition.x < 1 & _screenPosition.y > 0 & _screenPosition.y < 1;
 
-    const float ImpulseOncePerDeathSpeed = 20f;
     /// <summary>PLACEHOLDER: time in seconds to refill impulse energy from 0 to 1. Remove or replace with proper recharge logic.</summary>
     const float ImpulseRechargeDuration = 5f;
 
@@ -31,22 +29,14 @@ public class Orb : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float _impulseEnergy = 1f;
     private bool _wasImpulseEnergyFull = true;
 
-    public float ImpulseEnergy => _impulseEnergy;
     public bool IsImpulseEnergyFull => _impulseEnergy >= 1f;
 
     public EscapeMode EscapeMode => _orbiterSettings.escapeMode;
     public float ImpulseForce => _orbiterSettings.impulseForce;
     public float ThrustForce => _orbiterSettings.thrustForce;
-    public MovementMode MovementMode => _orbiterSettings.movementMode;
     public bool InertiaStabilizer => _orbiterSettings.inertiaStabilizer;
     public float InertiaDampTime => _orbiterSettings.inertiaDampTime;
     public float StabilizerMaxThrustSpeed => _orbiterSettings.stabilizerMaxThrustSpeed;
-
-    public void SetMovementMode(MovementMode mode)
-    {
-        _orbiterSettings.movementMode = mode;
-        _orbiterController.UpdateSettings(_orbiterSettings);
-    }
 
     public void SetInertiaStabilizer(bool value)
     {
@@ -101,7 +91,6 @@ public class Orb : MonoBehaviour
         _thrustInput = Vector2.zero;
         _aimDirection = Vector2.zero;
         _orbiterController.OnEnable();
-        _pendingImpulseOncePerDeath = true;
         _impulseEnergy = 1f;
         _wasImpulseEnergyFull = true;
         OnSpawn?.Invoke();
@@ -164,7 +153,7 @@ public class Orb : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, 0f, angleDeg);
         }
 
-        OnDebugUpdate?.Invoke(_orbiterController.Speed, _orbiterController.EscapeMode);
+        OnDebugUpdate?.Invoke(_orbiterController.Speed);
     }
     void OnTriggerEnter(Collider other)
     {
@@ -196,12 +185,6 @@ public class Orb : MonoBehaviour
         _isAiming = active;
         _lineRendererController.SetAiming(active && _orbiterSettings.escapeMode == EscapeMode.Cursor);
     }
-    /// <summary>Adds energy to the impulse resource. Use to refill (e.g. on orbit enter, over time).</summary>
-    public void AddImpulseEnergy(float amount)
-    {
-        _impulseEnergy = Mathf.Clamp01(_impulseEnergy + amount);
-    }
-
     public void Impulse(Vector3 cursorWorldPosition)
     {
         if (!IsImpulseEnergyFull)

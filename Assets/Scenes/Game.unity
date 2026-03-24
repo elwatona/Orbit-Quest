@@ -4116,17 +4116,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _orbiterSettings:
-    movementMode: 1
-    maxSpeed: 20
-    orbitSpeedScale: 0.5
-    stabilization: 0
-    radiusCorrection: 3
-    speedDamping: 2
     thrustForce: 5
     minThrustAssist: 0.5
     escapeMode: 0
     impulseForce: 10
-    detachSpins: 1
     inertiaStabilizer: 1
     inertiaDampTime: 2
     stabilizerMaxThrustSpeed: 10
@@ -8772,19 +8765,7 @@ MonoBehaviour:
     m_ActionId: f9a0b1c2-6789-4d2e-0f3a-4b5c6d7e8f9a
     m_ActionName: 'Player/Apply Thrust[/Mouse/rightButton]'
   - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1681121076}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: ApplyThrust
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 4
+      m_Calls: []
     m_ActionId: f9a0b1c2-6789-4d2e-0f3a-4b5c6d7e8f9a
     m_ActionName: 'Player/Apply Thrust[/Mouse/rightButton]'
   - m_PersistentCalls:
@@ -8844,7 +8825,7 @@ MonoBehaviour:
   _orbGameObject: {fileID: 677214015}
   _orb: {fileID: 677214020}
   _uiManager: {fileID: 1034392216}
-  _playerInput: {fileID: 0}
+  _playerInput: {fileID: 1681121075}
 --- !u!114 &1681121077
 MonoBehaviour:
   m_ObjectHideFlags: 0

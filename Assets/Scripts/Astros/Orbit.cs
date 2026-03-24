@@ -11,11 +11,9 @@ public class Orbit : MonoBehaviour, IOrbitable
     [SerializeField] Renderer _orbitRenderer;
     [SerializeField] Transform _transform;
     private OrbitShader _shaderController;
-    [SerializeField] float _collapseTimer;
     private Vector3 _lastPosition;
 
     public OrbitData Data => _runtimeData;
-    public float CollapseTimer => _collapseTimer;
 
     void Awake()
     {
@@ -50,23 +48,8 @@ public class Orbit : MonoBehaviour, IOrbitable
         if (!_orbitRenderer) _orbitRenderer = _transform.GetComponent<Renderer>();
         if (_shaderController == null) _shaderController = new OrbitShader(_orbitRenderer, _dangerZone);
     }
-    public bool IsInDangerZone(Vector3 orbPosition)
-    {
-        Vector3 localPos = transform.parent.InverseTransformPoint(orbPosition);
-
-        float r = localPos.magnitude;
-        if (r < 0.0001f) return false;
-
-        float phi = Mathf.Acos(Mathf.Clamp(localPos.y / r, -1f, 1f));
-        float theta = Mathf.Atan2(localPos.z, localPos.x);
-        if (theta < 0) theta += Mathf.PI * 2f;
-        
-        return theta >= _dangerZone.thetaMin && theta <= _dangerZone.thetaMax && phi   >= _dangerZone.phiMin   && phi   <= _dangerZone.phiMax;
-    }
-
     public void EnterOrbit()
     {
-        _collapseTimer = 0f;
         _shaderController.SetTetha(0,0);
         _shaderController.SetPhi(0,0);
     }
@@ -79,14 +62,6 @@ public class Orbit : MonoBehaviour, IOrbitable
         _runtimeData = data;
         _runtimeData.transform = _transform;
         _runtimeData.radialDamping = Mathf.Lerp(15, 1, _runtimeData.gravity/100);
-    }
-
-    public void UpdateTangentialForce()
-    {
-        _collapseTimer += Time.fixedDeltaTime;
-
-        _runtimeData.tangentialForce = _collapseTimer >= (_runtimeData.radius * 2) ? -1 : 1;
-        Debug.Log(_runtimeData.tangentialForce);
     }
 
 }

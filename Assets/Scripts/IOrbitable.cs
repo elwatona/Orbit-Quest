@@ -3,12 +3,9 @@ using UnityEngine;
 public interface IOrbitable
 {
     public OrbitData Data { get;}
-    public float CollapseTimer { get;}
-    public bool IsInDangerZone(Vector3 orbPosition);
     public void EnterOrbit();
     public void ExitOrbit();
     public void SetData(OrbitData data);
-    public void UpdateTangentialForce();
 }
 [Serializable]
 public struct OrbitData
