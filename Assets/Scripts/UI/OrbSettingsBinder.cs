@@ -5,11 +5,7 @@ using UnityEngine.UI;
 
 public class OrbSettingsBinder : MonoBehaviour
 {
-    // Ranges must match OrbiterSettings [Range] in RigidbodyOrbiter.cs
-    const float ImpulseForceMin = 0f, ImpulseForceMax = 30f;
-    const float ThrustForceMin = 0f, ThrustForceMax = 20f;
-    const float InertiaDampTimeMin = 0.5f, InertiaDampTimeMax = 5f;
-    const float StabilizerMaxThrustSpeedMin = 1f, StabilizerMaxThrustSpeedMax = 25f;
+    [SerializeField] DeveloperToolsUI _developerTools;
 
     [SerializeField] Orb _orb;
     [SerializeField] TMP_Dropdown _escapeModeDropdown;
@@ -30,9 +26,17 @@ public class OrbSettingsBinder : MonoBehaviour
     [SerializeField] Slider _stabilizerMaxThrustSpeedSlider;
     [SerializeField] TMP_Text _stabilizerMaxThrustSpeedLabel;
 
+    void Awake()
+    {
+        ResolveDeveloperTools();
+    }
+
     void OnEnable()
     {
         if (_orb == null) return;
+        ResolveDeveloperTools();
+        if (_developerTools == null || !_developerTools.IsAvailable)
+            return;
 
         if (_escapeModeDropdown != null)
         {
@@ -42,8 +46,8 @@ public class OrbSettingsBinder : MonoBehaviour
 
         if (_impulseForceSlider != null)
         {
-            _impulseForceSlider.minValue = ImpulseForceMin;
-            _impulseForceSlider.maxValue = ImpulseForceMax;
+            _impulseForceSlider.minValue = OrbiterTuning.ImpulseForceMin;
+            _impulseForceSlider.maxValue = OrbiterTuning.ImpulseForceMax;
             _impulseForceSlider.SetValueWithoutNotify(_orb.ImpulseForce);
             _impulseForceSlider.onValueChanged.AddListener(OnImpulseForceChanged);
             RefreshImpulseForceLabel(_orb.ImpulseForce);
@@ -51,8 +55,8 @@ public class OrbSettingsBinder : MonoBehaviour
 
         if (_thrustForceSlider != null)
         {
-            _thrustForceSlider.minValue = ThrustForceMin;
-            _thrustForceSlider.maxValue = ThrustForceMax;
+            _thrustForceSlider.minValue = OrbiterTuning.ThrustForceMin;
+            _thrustForceSlider.maxValue = OrbiterTuning.ThrustForceMax;
             _thrustForceSlider.SetValueWithoutNotify(_orb.ThrustForce);
             _thrustForceSlider.onValueChanged.AddListener(OnThrustForceChanged);
             RefreshThrustForceLabel(_orb.ThrustForce);
@@ -66,8 +70,8 @@ public class OrbSettingsBinder : MonoBehaviour
 
         if (_inertiaDampTimeSlider != null)
         {
-            _inertiaDampTimeSlider.minValue = InertiaDampTimeMin;
-            _inertiaDampTimeSlider.maxValue = InertiaDampTimeMax;
+            _inertiaDampTimeSlider.minValue = OrbiterTuning.InertiaDampTimeMin;
+            _inertiaDampTimeSlider.maxValue = OrbiterTuning.InertiaDampTimeMax;
             _inertiaDampTimeSlider.SetValueWithoutNotify(_orb.InertiaDampTime);
             _inertiaDampTimeSlider.onValueChanged.AddListener(OnInertiaDampTimeChanged);
             RefreshInertiaDampTimeLabel(_orb.InertiaDampTime);
@@ -75,8 +79,8 @@ public class OrbSettingsBinder : MonoBehaviour
 
         if (_stabilizerMaxThrustSpeedSlider != null)
         {
-            _stabilizerMaxThrustSpeedSlider.minValue = StabilizerMaxThrustSpeedMin;
-            _stabilizerMaxThrustSpeedSlider.maxValue = StabilizerMaxThrustSpeedMax;
+            _stabilizerMaxThrustSpeedSlider.minValue = OrbiterTuning.StabilizerMaxThrustSpeedMin;
+            _stabilizerMaxThrustSpeedSlider.maxValue = OrbiterTuning.StabilizerMaxThrustSpeedMax;
             _stabilizerMaxThrustSpeedSlider.SetValueWithoutNotify(_orb.StabilizerMaxThrustSpeed);
             _stabilizerMaxThrustSpeedSlider.onValueChanged.AddListener(OnStabilizerMaxThrustSpeedChanged);
             RefreshStabilizerMaxThrustSpeedLabel(_orb.StabilizerMaxThrustSpeed);
@@ -114,6 +118,12 @@ public class OrbSettingsBinder : MonoBehaviour
     {
         UpdateOrbStatusLabel();
     }
+    void ResolveDeveloperTools()
+    {
+        if (_developerTools == null)
+            _developerTools = GetComponentInParent<DeveloperToolsUI>(true);
+    }
+
     void OnEscapeModeChanged(int index)
     {
         if (_orb != null)

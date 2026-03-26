@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PanelController
 {
@@ -51,13 +52,59 @@ public class PanelController
 
     public void Clear()
     {
-        foreach (GameObject go in _instantiated)
+        if (_container == null)
         {
-            if (go.TryGetComponent(out PropertyRow row))
-                row.Unbind();
-            Object.Destroy(go);
+            _instantiated.Clear();
+            return;
         }
 
-        _instantiated.Clear();
+        // Use activeInHierarchy: when parent panel is inactive, children may still have activeSelf true.
+        bool shouldToggleContainer = _container.gameObject.activeInHierarchy;
+        bool previousSelf = _container.gameObject.activeSelf;
+        if (shouldToggleContainer)
+            _container.gameObject.SetActive(false);
+
+        try
+        {
+            foreach (GameObject go in _instantiated)
+            {
+                if (go == null) continue;
+                if (go.TryGetComponent(out PropertyRow row))
+                    row.Unbind();
+                UiDestroyRaycastHelper.DeactivateStripAndDestroy(go);
+            }
+
+            _instantiated.Clear();
+        }
+        finally
+        {
+            if (shouldToggleContainer && _container != null)
+                _container.gameObject.SetActive(previousSelf);
+        }
+    }
+}
+
+/// <summary>Stops GraphicRaycaster from touching Graphics scheduled for Destroy (avoids MissingReferenceException).</summary>
+public static class UiDestroyRaycastHelper
+{
+    public static void StripRaycastTargetsBeforeDestroy(GameObject go)
+    {
+        if (go == null) return;
+        Graphic[] graphics = go.GetComponentsInChildren<Graphic>(true);
+        for (int i = 0; i < graphics.Length; i++)
+        {
+            Graphic g = graphics[i];
+            if (g != null)
+                g.raycastTarget = false;
+        }
+    }
+
+    /// <summary>Deactivate first so GraphicRaycaster drops the hierarchy branch before Destroy schedules teardown.</summary>
+    public static void DeactivateStripAndDestroy(GameObject go)
+    {
+        if (go == null) return;
+        go.SetActive(false);
+        StripRaycastTargetsBeforeDestroy(go);
+        Object.Destroy(go);
     }
 }

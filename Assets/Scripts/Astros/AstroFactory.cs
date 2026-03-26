@@ -10,6 +10,11 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
     [SerializeField] GameObject _planetPrefab;
     [SerializeField] GameObject _asteroidPrefab;
 
+    [Header("Spawn presets (orbit + body); used when Create omits data")]
+    [SerializeField] AstroSpawnPreset _sunSpawnPreset;
+    [SerializeField] AstroSpawnPreset _planetSpawnPreset;
+    [SerializeField] AstroSpawnPreset _asteroidSpawnPreset;
+
     [Header("Pool Settings")]
     [SerializeField] int _initialPoolSize = 8;
     [SerializeField] Transform _poolParent;
@@ -43,6 +48,17 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
         }
     }
 
+    private AstroSpawnPreset GetSpawnPreset(AstroType type)
+    {
+        switch (type)
+        {
+            case AstroType.Sun: return _sunSpawnPreset;
+            case AstroType.Planet: return _planetSpawnPreset;
+            case AstroType.Asteroid: return _asteroidSpawnPreset;
+            default: return null;
+        }
+    }
+
     public Astro Create(AstroType type, Vector3 position, Transform parent = null)
     {
         return Create(type, position, null, null, parent);
@@ -70,8 +86,15 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
             return null;
         }
 
-        OrbitData o = orbitData ?? AstroDefaultConfig.GetDefaultOrbitData(type);
-        BodyData b = bodyData ?? AstroDefaultConfig.GetDefaultBodyData(type);
+        AstroSpawnPreset preset = GetSpawnPreset(type);
+        if ((orbitData == null || bodyData == null) && preset == null)
+        {
+            Debug.LogError($"AstroFactory: no spawn preset assigned for type {type}.", this);
+            return null;
+        }
+
+        OrbitData o = orbitData ?? preset.ToOrbitData();
+        BodyData b = bodyData ?? preset.ToBodyData();
         astro.Initialize(o, b);
 
         return astro;

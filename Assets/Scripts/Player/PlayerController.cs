@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,7 +13,8 @@ public class PlayerController : MonoBehaviour
     [Header("Settings")]
     [SerializeField] GameObject _orbGameObject;
     [SerializeField] Orb _orb;
-    [SerializeField] UIManager _uiManager;
+    [FormerlySerializedAs("_uiManager")]
+    [SerializeField] DeveloperToolsUI _developerTools;
     [SerializeField] PlayerInput _playerInput;
 
     InputAction _mousePositionAction;
@@ -145,20 +147,22 @@ public class PlayerController : MonoBehaviour
 
         _astroFactory.Create(type, cursorWorldPosition);
     }
-    /// <summary>Called by the Developer Mode input action (F1). Toggles developer mode and notifies UIManager (and any other consumers) with the new value.</summary>
+    /// <summary>Called by the Developer Mode input action (F1). Toggles developer mode and notifies DeveloperToolsUI (and any other consumers) with the new value.</summary>
     public void DeveloperMode(InputAction.CallbackContext context)
     {
         if (!context.started) return;
+        if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
         _developerMode = !_developerMode;
-        _uiManager?.SetDeveloperMode(_developerMode);
+        _developerTools.SetDeveloperMode(_developerMode);
     }
 
     public void TogglePanel(InputAction.CallbackContext context)
     {
-        if(!context.started) return;
+        if (!context.started) return;
+        if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
         int panelIndex = GetPanelIndexFromBinding(context);
-        if(panelIndex == -1) return;
-        _uiManager.TogglePanel(panelIndex);
+        if (panelIndex == -1) return;
+        _developerTools.TogglePanel(panelIndex);
     }
 
     /// <summary>

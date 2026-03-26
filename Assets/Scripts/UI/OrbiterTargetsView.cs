@@ -20,9 +20,7 @@ public class OrbiterTargetsView : MonoBehaviour
 
     public void Refresh()
     {
-        foreach (GameObject go in _rows)
-            Object.Destroy(go);
-        _rows.Clear();
+        DestroyRowInstances();
 
         if (_orbiter == null || _container == null || _rowPrefab == null) return;
 
@@ -66,8 +64,41 @@ public class OrbiterTargetsView : MonoBehaviour
     public void Clear()
     {
         _orbiter = null;
-        foreach (GameObject go in _rows)
-            Object.Destroy(go);
-        _rows.Clear();
+        DestroyRowInstances();
+    }
+
+    void DestroyRowInstances()
+    {
+        if (_container == null)
+        {
+            foreach (GameObject go in _rows)
+            {
+                if (go == null) continue;
+                UiDestroyRaycastHelper.DeactivateStripAndDestroy(go);
+            }
+            _rows.Clear();
+            return;
+        }
+
+        bool shouldToggleContainer = _container.gameObject.activeInHierarchy;
+        bool previousSelf = _container.gameObject.activeSelf;
+        if (shouldToggleContainer)
+            _container.gameObject.SetActive(false);
+
+        try
+        {
+            foreach (GameObject go in _rows)
+            {
+                if (go == null) continue;
+                UiDestroyRaycastHelper.DeactivateStripAndDestroy(go);
+            }
+
+            _rows.Clear();
+        }
+        finally
+        {
+            if (shouldToggleContainer && _container != null)
+                _container.gameObject.SetActive(previousSelf);
+        }
     }
 }

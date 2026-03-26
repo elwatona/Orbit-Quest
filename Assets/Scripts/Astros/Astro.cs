@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 {
@@ -13,7 +14,8 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
     [SerializeField] float _rotationSpeed = 5f;
 
     [SerializeField] Transform _transform, _baseTransform, _orbitTransform;
-    [SerializeField] UIManager _uiManager;
+    [FormerlySerializedAs("_uiManager")]
+    [SerializeField] DeveloperToolsUI _developerTools;
     private IOrbitable _orbit;
     private BodyShader _baseShader;
     private TransformOrbiter _orbiter;
@@ -48,7 +50,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
         if(_orbit == null) _orbit = _orbitTransform?.GetComponent<IOrbitable>();
         if(_baseShader == null) _baseShader = new BodyShader(_baseTransform?.GetComponent<Renderer>());
         if(_orbiter == null) _orbiter = GetComponent<TransformOrbiter>();
-        if(_uiManager == null) _uiManager = FindFirstObjectByType<UIManager>();
+        if (_developerTools == null) _developerTools = FindFirstObjectByType<DeveloperToolsUI>();
     }
     void UpdateBaseValues()
     {
@@ -138,8 +140,8 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (_uiManager == null) _uiManager = FindFirstObjectByType<UIManager>();
-        if (_uiManager == null || !_uiManager.IsDeveloperMode) return;
+        if (_developerTools == null) _developerTools = FindFirstObjectByType<DeveloperToolsUI>();
+        if (_developerTools == null || !_developerTools.IsAvailable || !_developerTools.IsDeveloperModeActive) return;
 
         Vector2 desiredPosition = Camera.main.ScreenToWorldPoint(eventData.position);
         _transform.position = desiredPosition;

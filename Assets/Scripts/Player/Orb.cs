@@ -9,8 +9,9 @@ public class Orb : MonoBehaviour
     public static event Action<bool> OnInertiaStabilizerChanged;
     public static event Action<bool> OnImpulseReadyChanged;
 
-    [SerializeField] RigidbodyOrbiter _orbiterController;
-    [SerializeField] OrbiterSettings _orbiterSettings = OrbiterSettings.Default;
+    [SerializeField] OrbiterConfig _orbiterConfig;
+    [SerializeField] ImpulseResource _impulseResource;
+    RigidbodyOrbiter _orbiterController;
     [SerializeField] LineRenderer _trajectoryRenderer;
     [SerializeField] LineRenderer _directionRenderer;
     private LineRendererController _lineRendererController;
@@ -21,97 +22,100 @@ public class Orb : MonoBehaviour
     private bool _isAiming;
     private bool _isInScreen => _screenPosition.x > 0 & _screenPosition.x < 1 & _screenPosition.y > 0 & _screenPosition.y < 1;
 
-    /// <summary>PLACEHOLDER: time in seconds to refill impulse energy from 0 to 1. Remove or replace with proper recharge logic.</summary>
-    const float ImpulseRechargeDuration = 5f;
+    public bool IsImpulseEnergyFull => _impulseResource != null && _impulseResource.IsReady;
 
-    [Header("Impulse resource")]
-    [Tooltip("Energy required to use Impulse (0-1). Must be full (>= 1) to execute impulse.")]
-    [SerializeField, Range(0f, 1f)] float _impulseEnergy = 1f;
-    private bool _wasImpulseEnergyFull = true;
+    /// <summary>Impulse recharge progress 0–1 for HUD (read from <see cref="ImpulseResource"/>).</summary>
+    public float ImpulseEnergyNormalized => _impulseResource != null ? _impulseResource.NormalizedEnergy : 0f;
 
-    public bool IsImpulseEnergyFull => _impulseEnergy >= 1f;
+    public EscapeMode EscapeMode => _orbiterConfig != null ? _orbiterConfig.EscapeMode : EscapeMode.Cursor;
+    public float ImpulseForce => _orbiterConfig != null ? _orbiterConfig.ImpulseForce : 0f;
+    public float ThrustForce => _orbiterConfig != null ? _orbiterConfig.ThrustForce : 0f;
+    public bool InertiaStabilizer => _orbiterConfig != null && _orbiterConfig.InertiaStabilizer;
+    public float InertiaDampTime => _orbiterConfig != null ? _orbiterConfig.InertiaDampTime : 0f;
+    public float StabilizerMaxThrustSpeed => _orbiterConfig != null ? _orbiterConfig.StabilizerMaxThrustSpeed : 0f;
 
-    public EscapeMode EscapeMode => _orbiterSettings.escapeMode;
-    public float ImpulseForce => _orbiterSettings.impulseForce;
-    public float ThrustForce => _orbiterSettings.thrustForce;
-    public bool InertiaStabilizer => _orbiterSettings.inertiaStabilizer;
-    public float InertiaDampTime => _orbiterSettings.inertiaDampTime;
-    public float StabilizerMaxThrustSpeed => _orbiterSettings.stabilizerMaxThrustSpeed;
+    public ImpulseResource ImpulseResourceAsset => _impulseResource;
 
     public void SetInertiaStabilizer(bool value)
     {
-        _orbiterSettings.inertiaStabilizer = value;
-        _orbiterController.UpdateSettings(_orbiterSettings);
-        OnInertiaStabilizerChanged?.Invoke(_orbiterSettings.inertiaStabilizer);
+        if (_orbiterConfig == null) return;
+        _orbiterConfig.ApplyInertiaStabilizer(value);
+        SyncOrbiterFromConfig();
+        OnInertiaStabilizerChanged?.Invoke(_orbiterConfig.InertiaStabilizer);
     }
 
     public void ToggleInertiaStabilizer()
     {
-        SetInertiaStabilizer(!_orbiterSettings.inertiaStabilizer);
+        if (_orbiterConfig == null) return;
+        SetInertiaStabilizer(!_orbiterConfig.InertiaStabilizer);
     }
 
     public void SetInertiaDampTime(float value)
     {
-        _orbiterSettings.inertiaDampTime = Mathf.Clamp(value, 0.5f, 5f);
-        _orbiterController.UpdateSettings(_orbiterSettings);
+        if (_orbiterConfig == null) return;
+        _orbiterConfig.ApplyInertiaDampTime(value);
+        SyncOrbiterFromConfig();
     }
 
     public void SetStabilizerMaxThrustSpeed(float value)
     {
-        _orbiterSettings.stabilizerMaxThrustSpeed = Mathf.Clamp(value, 1f, 25f);
-        _orbiterController.UpdateSettings(_orbiterSettings);
+        if (_orbiterConfig == null) return;
+        _orbiterConfig.ApplyStabilizerMaxThrustSpeed(value);
+        SyncOrbiterFromConfig();
     }
 
     public void SetEscapeMode(EscapeMode mode)
     {
-        _orbiterSettings.escapeMode = mode;
-        _orbiterController.UpdateSettings(_orbiterSettings);
+        if (_orbiterConfig == null) return;
+        _orbiterConfig.ApplyEscapeMode(mode);
+        SyncOrbiterFromConfig();
     }
 
     public void SetImpulseForce(float force)
     {
-        _orbiterSettings.impulseForce = Mathf.Clamp(force, 0f, 30f);
-        _orbiterController.UpdateSettings(_orbiterSettings);
+        if (_orbiterConfig == null) return;
+        _orbiterConfig.ApplyImpulseForce(force);
+        SyncOrbiterFromConfig();
     }
 
     public void SetThrustForce(float value)
     {
-        _orbiterSettings.thrustForce = Mathf.Clamp(value, 0f, 20f);
-        _orbiterController.UpdateSettings(_orbiterSettings);
+        if (_orbiterConfig == null) return;
+        _orbiterConfig.ApplyThrustForce(value);
+        SyncOrbiterFromConfig();
     }
 
     void Awake()
     {
+        if (_orbiterConfig == null || _impulseResource == null)
+            Debug.LogError("Orb requires OrbiterConfig and ImpulseResource references.", this);
+
         _rb = GetComponent<Rigidbody>();
-        _orbiterController = new RigidbodyOrbiter(_rb, transform, OnOrbitEnter, OnOrbitExit, _orbiterSettings);
+        _orbiterController = new RigidbodyOrbiter(_rb, transform, OnOrbitEnter, OnOrbitExit,
+            _orbiterConfig != null ? _orbiterConfig.ToOrbiterSettings() : OrbiterSettings.Default);
         _lineRendererController = new LineRendererController(_trajectoryRenderer, _directionRenderer, _orbiterController, transform.localScale.x);
     }
+
     void OnEnable()
     {
         _thrustInput = Vector2.zero;
         _aimDirection = Vector2.zero;
-        _orbiterController.OnEnable();
-        _impulseEnergy = 1f;
-        _wasImpulseEnergyFull = true;
+        if (_impulseResource != null)
+            _impulseResource.OnReadyChanged += HandleImpulseReadyFromResource;
+        _orbiterController?.OnEnable();
+        _impulseResource?.ResetForSpawn();
         OnSpawn?.Invoke();
     }
+
     void FixedUpdate()
     {
         _orbiterController?.FixedUpdate(_thrustInput);
-        _orbiterController.ApplyThrust(_thrustInput);
+        _orbiterController?.ApplyThrust(_thrustInput);
     }
 
     void Update()
     {
-        // PLACEHOLDER: recharge impulse energy over ImpulseRechargeDuration. Remove or replace later.
-        if (_impulseEnergy < 1f)
-            _impulseEnergy = Mathf.Clamp01(_impulseEnergy + Time.deltaTime / ImpulseRechargeDuration);
-
-        if (_wasImpulseEnergyFull != IsImpulseEnergyFull)
-        {
-            _wasImpulseEnergyFull = IsImpulseEnergyFull;
-            OnImpulseReadyChanged?.Invoke(IsImpulseEnergyFull);
-        }
+        _impulseResource?.Tick(Time.deltaTime);
     }
 
     /// <summary>Called by the Move input action (e.g. from PlayerController). Passes the current movement direction.</summary>
@@ -132,10 +136,11 @@ public class Orb : MonoBehaviour
         if (worldDirection.sqrMagnitude < 0.0001f) return;
         _orbiterController.ApplyThrust(worldDirection);
     }
+
     void LateUpdate()
     {
         _screenPosition = Camera.main.WorldToViewportPoint(transform.position);
-        if(!_isInScreen) gameObject.SetActive(false);
+        if (!_isInScreen) gameObject.SetActive(false);
 
         if (_isAiming)
         {
@@ -155,45 +160,64 @@ public class Orb : MonoBehaviour
 
         OnDebugUpdate?.Invoke(_orbiterController.Speed);
     }
+
     void OnTriggerEnter(Collider other)
     {
         if (other.TryGetComponent(out IOrbitable orbit))
             _orbiterController.AddGravitySource(orbit);
     }
+
     void OnTriggerExit(Collider other)
     {
         if (other.TryGetComponent(out IOrbitable orbit))
             _orbiterController.RemoveGravitySource(orbit);
     }
+
     void OnValidate()
     {
-        _orbiterController?.UpdateSettings(_orbiterSettings);
+        if (!Application.isPlaying || _orbiterController == null || _orbiterConfig == null)
+            return;
+        SyncOrbiterFromConfig();
     }
+
     void OnCollisionEnter(Collision collision)
     {
         gameObject.SetActive(false);
     }
+
     void OnDisable()
     {
+        if (_impulseResource != null)
+            _impulseResource.OnReadyChanged -= HandleImpulseReadyFromResource;
         _thrustInput = Vector2.zero;
         SetAiming(false);
-        _orbiterController.OnDisable();
+        _orbiterController?.OnDisable();
         OnDespawn?.Invoke();
     }
+
     public void SetAiming(bool active)
     {
         _isAiming = active;
-        _lineRendererController.SetAiming(active && _orbiterSettings.escapeMode == EscapeMode.Cursor);
+        bool cursorMode = _orbiterConfig != null && _orbiterConfig.EscapeMode == EscapeMode.Cursor;
+        _lineRendererController.SetAiming(active && cursorMode);
     }
+
     public void Impulse(Vector3 cursorWorldPosition)
     {
-        if (!IsImpulseEnergyFull)
+        if (_impulseResource == null || !_impulseResource.TryConsumeImpulse())
             return;
 
-        _impulseEnergy = 0f;
-        _wasImpulseEnergyFull = false;
-        OnImpulseReadyChanged?.Invoke(false);
-
         _orbiterController.Impulse(cursorWorldPosition);
+    }
+
+    void SyncOrbiterFromConfig()
+    {
+        if (_orbiterConfig == null) return;
+        _orbiterController?.UpdateSettings(_orbiterConfig.ToOrbiterSettings());
+    }
+
+    void HandleImpulseReadyFromResource(bool ready)
+    {
+        OnImpulseReadyChanged?.Invoke(ready);
     }
 }
