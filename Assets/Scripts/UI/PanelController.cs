@@ -1,110 +1,48 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
+[Serializable]
 public class PanelController
 {
-    readonly Transform _container;
-    readonly PropertyRow _rowPrefab;
-    readonly GroupHeaderView _groupHeaderPrefab;
-    readonly List<GameObject> _instantiated = new();
-
-    public PanelController(Transform container, PropertyRow rowPrefab, GroupHeaderView groupHeaderPrefab = null)
+    [SerializeField] Transform[] _sliders;
+    [SerializeField] Transform[] _toggles;
+    [SerializeField] Transform[] _dropdowns;
+    public SliderComponent[] SliderComponents { get; private set; }
+    public ToggleComponent[] ToggleComponents { get; private set; }
+    public DropdownComponent[] DropdownComponents { get; private set; }
+    public void Initialize()
     {
-        _container = container;
-        _rowPrefab = rowPrefab;
-        _groupHeaderPrefab = groupHeaderPrefab;
+        SliderComponents = CacheSliderComponents(_sliders);
+        ToggleComponents = CacheToggleComponents(_toggles);
+        DropdownComponents = CacheDropdownComponents(_dropdowns);
     }
-
-    public void Bind(IEditable target)
+    private SliderComponent[] CacheSliderComponents(Transform[] sliderTransforms)
     {
-        Bind(target.GetProperties());
+        SliderComponent[] components = new SliderComponent[sliderTransforms.Length];
+        for (int i = 0; i < sliderTransforms.Length; i++)
+        {
+            components[i] = new SliderComponent(sliderTransforms[i]);
+        }
+        return components;
+    }   
+    private ToggleComponent[] CacheToggleComponents(Transform[] toggleTransforms)
+    {
+        ToggleComponent[] components = new ToggleComponent[toggleTransforms.Length];
+        for (int i = 0; i < toggleTransforms.Length; i++)
+        {
+            components[i] = new ToggleComponent(toggleTransforms[i]);
+        }
+        return components;
     }
-
-    public void Bind(List<PropertyDefinition> properties)
+    private DropdownComponent[] CacheDropdownComponents(Transform[] dropdownTransforms)
     {
-        Clear();
-
-        if (properties == null) return;
-
-        string lastGroup = null;
-
-        foreach (PropertyDefinition property in properties)
+        DropdownComponent[] components = new DropdownComponent[dropdownTransforms.Length];
+        for (int i = 0; i < dropdownTransforms.Length; i++)
         {
-            if (!string.IsNullOrEmpty(property.group) && property.group != lastGroup)
-            {
-                lastGroup = property.group;
-                if (_groupHeaderPrefab != null)
-                {
-                    GroupHeaderView header = Object.Instantiate(_groupHeaderPrefab, _container);
-                    header.SetTitle(property.group);
-                    header.gameObject.SetActive(true);
-                    _instantiated.Add(header.gameObject);
-                }
-            }
-
-            PropertyRow row = Object.Instantiate(_rowPrefab, _container);
-            row.Bind(property);
-            row.gameObject.SetActive(true);
-            _instantiated.Add(row.gameObject);
+            components[i] = new DropdownComponent(dropdownTransforms[i]);
         }
-    }
-
-    public void Clear()
-    {
-        if (_container == null)
-        {
-            _instantiated.Clear();
-            return;
-        }
-
-        // Use activeInHierarchy: when parent panel is inactive, children may still have activeSelf true.
-        bool shouldToggleContainer = _container.gameObject.activeInHierarchy;
-        bool previousSelf = _container.gameObject.activeSelf;
-        if (shouldToggleContainer)
-            _container.gameObject.SetActive(false);
-
-        try
-        {
-            foreach (GameObject go in _instantiated)
-            {
-                if (go == null) continue;
-                if (go.TryGetComponent(out PropertyRow row))
-                    row.Unbind();
-                UiDestroyRaycastHelper.DeactivateStripAndDestroy(go);
-            }
-
-            _instantiated.Clear();
-        }
-        finally
-        {
-            if (shouldToggleContainer && _container != null)
-                _container.gameObject.SetActive(previousSelf);
-        }
-    }
-}
-
-/// <summary>Stops GraphicRaycaster from touching Graphics scheduled for Destroy (avoids MissingReferenceException).</summary>
-public static class UiDestroyRaycastHelper
-{
-    public static void StripRaycastTargetsBeforeDestroy(GameObject go)
-    {
-        if (go == null) return;
-        Graphic[] graphics = go.GetComponentsInChildren<Graphic>(true);
-        for (int i = 0; i < graphics.Length; i++)
-        {
-            Graphic g = graphics[i];
-            if (g != null)
-                g.raycastTarget = false;
-        }
-    }
-
-    /// <summary>Deactivate first so GraphicRaycaster drops the hierarchy branch before Destroy schedules teardown.</summary>
-    public static void DeactivateStripAndDestroy(GameObject go)
-    {
-        if (go == null) return;
-        go.SetActive(false);
-        StripRaycastTargetsBeforeDestroy(go);
-        Object.Destroy(go);
+        return components;
     }
 }

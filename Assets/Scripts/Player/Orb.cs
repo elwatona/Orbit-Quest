@@ -5,15 +5,11 @@ using UnityEngine;
 public class Orb : MonoBehaviour
 {
     public static event Action OnOrbitEnter, OnOrbitExit, OnSpawn, OnDespawn;
-    public static event Action<float> OnDebugUpdate;
-    public static event Action<bool> OnInertiaStabilizerChanged;
-    public static event Action<bool> OnImpulseReadyChanged;
 
-    [SerializeField] OrbiterConfig _orbiterConfig;
-    [SerializeField] ImpulseResource _impulseResource;
-    RigidbodyOrbiter _orbiterController;
+    [SerializeField] PlayerData _playerData;
     [SerializeField] LineRenderer _trajectoryRenderer;
     [SerializeField] LineRenderer _directionRenderer;
+    private RigidbodyOrbiter _orbiterController;
     private LineRendererController _lineRendererController;
     private Rigidbody _rb;
     private Vector2 _thrustInput;
@@ -22,77 +18,27 @@ public class Orb : MonoBehaviour
     private bool _isAiming;
     private bool _isInScreen => _screenPosition.x > 0 & _screenPosition.x < 1 & _screenPosition.y > 0 & _screenPosition.y < 1;
 
-    public bool IsImpulseEnergyFull => _impulseResource != null && _impulseResource.IsReady;
-
-    /// <summary>Impulse recharge progress 0–1 for HUD (read from <see cref="ImpulseResource"/>).</summary>
-    public float ImpulseEnergyNormalized => _impulseResource != null ? _impulseResource.NormalizedEnergy : 0f;
-
-    public EscapeMode EscapeMode => _orbiterConfig != null ? _orbiterConfig.EscapeMode : EscapeMode.Cursor;
-    public float ImpulseForce => _orbiterConfig != null ? _orbiterConfig.ImpulseForce : 0f;
-    public float ThrustForce => _orbiterConfig != null ? _orbiterConfig.ThrustForce : 0f;
-    public bool InertiaStabilizer => _orbiterConfig != null && _orbiterConfig.InertiaStabilizer;
-    public float InertiaDampTime => _orbiterConfig != null ? _orbiterConfig.InertiaDampTime : 0f;
-    public float StabilizerMaxThrustSpeed => _orbiterConfig != null ? _orbiterConfig.StabilizerMaxThrustSpeed : 0f;
-
-    public ImpulseResource ImpulseResourceAsset => _impulseResource;
-
     public void SetInertiaStabilizer(bool value)
     {
-        if (_orbiterConfig == null) return;
-        _orbiterConfig.ApplyInertiaStabilizer(value);
+        if (_playerData.InertiaResource == null) return;
+        _playerData.UpdateInertiaStabilizer(value);
         SyncOrbiterFromConfig();
-        OnInertiaStabilizerChanged?.Invoke(_orbiterConfig.InertiaStabilizer);
     }
 
     public void ToggleInertiaStabilizer()
     {
-        if (_orbiterConfig == null) return;
-        SetInertiaStabilizer(!_orbiterConfig.InertiaStabilizer);
-    }
-
-    public void SetInertiaDampTime(float value)
-    {
-        if (_orbiterConfig == null) return;
-        _orbiterConfig.ApplyInertiaDampTime(value);
-        SyncOrbiterFromConfig();
-    }
-
-    public void SetStabilizerMaxThrustSpeed(float value)
-    {
-        if (_orbiterConfig == null) return;
-        _orbiterConfig.ApplyStabilizerMaxThrustSpeed(value);
-        SyncOrbiterFromConfig();
-    }
-
-    public void SetEscapeMode(EscapeMode mode)
-    {
-        if (_orbiterConfig == null) return;
-        _orbiterConfig.ApplyEscapeMode(mode);
-        SyncOrbiterFromConfig();
-    }
-
-    public void SetImpulseForce(float force)
-    {
-        if (_orbiterConfig == null) return;
-        _orbiterConfig.ApplyImpulseForce(force);
-        SyncOrbiterFromConfig();
-    }
-
-    public void SetThrustForce(float value)
-    {
-        if (_orbiterConfig == null) return;
-        _orbiterConfig.ApplyThrustForce(value);
-        SyncOrbiterFromConfig();
+        if (_playerData.InertiaResource == null) return;
+        SetInertiaStabilizer(!_playerData.InertiaResource.InertiaStabilizer);
     }
 
     void Awake()
     {
-        if (_orbiterConfig == null || _impulseResource == null)
+        if (_playerData == null || _playerData.ImpulseResource == null)
             Debug.LogError("Orb requires OrbiterConfig and ImpulseResource references.", this);
 
         _rb = GetComponent<Rigidbody>();
         _orbiterController = new RigidbodyOrbiter(_rb, transform, OnOrbitEnter, OnOrbitExit,
-            _orbiterConfig != null ? _orbiterConfig.ToOrbiterSettings() : OrbiterSettings.Default);
+            _playerData != null ? _playerData.ToOrbiterSettings() : OrbiterSettings.Default);
         _lineRendererController = new LineRendererController(_trajectoryRenderer, _directionRenderer, _orbiterController, transform.localScale.x);
     }
 
@@ -100,11 +46,11 @@ public class Orb : MonoBehaviour
     {
         _thrustInput = Vector2.zero;
         _aimDirection = Vector2.zero;
-        if (_impulseResource != null)
-            _impulseResource.OnReadyChanged += HandleImpulseReadyFromResource;
         _orbiterController?.OnEnable();
-        _impulseResource?.ResetForSpawn();
+        _playerData.ImpulseResource?.ResetForSpawn();
         OnSpawn?.Invoke();
+
+        _playerData.OrbiterConfigUpdated += SyncOrbiterFromConfig;
     }
 
     void FixedUpdate()
@@ -115,7 +61,7 @@ public class Orb : MonoBehaviour
 
     void Update()
     {
-        _impulseResource?.Tick(Time.deltaTime);
+        _playerData.ImpulseResource?.Tick(Time.deltaTime);
     }
 
     /// <summary>Called by the Move input action (e.g. from PlayerController). Passes the current movement direction.</summary>
@@ -157,8 +103,7 @@ public class Orb : MonoBehaviour
             float angleDeg = -Mathf.Atan2(_aimDirection.x, _aimDirection.y) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0f, 0f, angleDeg);
         }
-
-        OnDebugUpdate?.Invoke(_orbiterController.Speed);
+        _playerData.ThrusterResource.UpdateSpeed(_orbiterController.Speed);
     }
 
     void OnTriggerEnter(Collider other)
@@ -175,7 +120,7 @@ public class Orb : MonoBehaviour
 
     void OnValidate()
     {
-        if (!Application.isPlaying || _orbiterController == null || _orbiterConfig == null)
+        if (!Application.isPlaying || _orbiterController == null || _playerData == null)
             return;
         SyncOrbiterFromConfig();
     }
@@ -187,24 +132,24 @@ public class Orb : MonoBehaviour
 
     void OnDisable()
     {
-        if (_impulseResource != null)
-            _impulseResource.OnReadyChanged -= HandleImpulseReadyFromResource;
         _thrustInput = Vector2.zero;
         SetAiming(false);
         _orbiterController?.OnDisable();
         OnDespawn?.Invoke();
+
+        _playerData.OrbiterConfigUpdated -= SyncOrbiterFromConfig;
     }
 
     public void SetAiming(bool active)
     {
         _isAiming = active;
-        bool cursorMode = _orbiterConfig != null && _orbiterConfig.EscapeMode == EscapeMode.Cursor;
+        bool cursorMode = _playerData != null && _playerData.ImpulseResource.ImpulseMode == ImpulseMode.Cursor;
         _lineRendererController.SetAiming(active && cursorMode);
     }
 
     public void Impulse(Vector3 cursorWorldPosition)
     {
-        if (_impulseResource == null || !_impulseResource.TryConsumeImpulse())
+        if (_playerData.ImpulseResource == null || !_playerData.ImpulseResource.TryConsumeImpulse())
             return;
 
         _orbiterController.Impulse(cursorWorldPosition);
@@ -212,12 +157,7 @@ public class Orb : MonoBehaviour
 
     void SyncOrbiterFromConfig()
     {
-        if (_orbiterConfig == null) return;
-        _orbiterController?.UpdateSettings(_orbiterConfig.ToOrbiterSettings());
-    }
-
-    void HandleImpulseReadyFromResource(bool ready)
-    {
-        OnImpulseReadyChanged?.Invoke(ready);
+        if (_playerData == null) return;
+        _orbiterController?.UpdateSettings(_playerData.ToOrbiterSettings());
     }
 }

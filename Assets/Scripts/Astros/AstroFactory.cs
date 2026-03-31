@@ -95,7 +95,8 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
 
         OrbitData o = orbitData ?? preset.ToOrbitData();
         BodyData b = bodyData ?? preset.ToBodyData();
-        astro.Initialize(o, b);
+        AstroSpawnPreset spawnSource = (orbitData == null || bodyData == null) ? preset : null;
+        astro.Initialize(o, b, spawnSource);
 
         return astro;
     }

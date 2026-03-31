@@ -3,6 +3,13 @@ using UnityEngine;
 
 public class TransformOrbiter : MonoBehaviour
 {
+    public const float SpeedMin = 0.1f;
+    public const float SpeedMax = 15f;
+    public const float RadiusMin = 0.5f;
+    public const float RadiusMax = 20f;
+    public const float EccentricityMin = 0.01f;
+    public const float EccentricityMax = 0.99f;
+
     [Header("Orbit")]
     [SerializeField] Transform[] _targets = new Transform[1];
     [Tooltip("Single target: semi-major axis. Multi target: extra clearance added to path margin.")]
@@ -35,6 +42,11 @@ public class TransformOrbiter : MonoBehaviour
     private bool _orbitStateDirty = true;
 
     const int KeplerIterations = 5;
+
+    public float Speed => _speed;
+    public float Radius => _radius;
+    public float Eccentricity => _eccentricity;
+    public bool IsPathMode => UsePathMode();
 
     bool HasValidTargets()
     {
@@ -515,6 +527,27 @@ public class TransformOrbiter : MonoBehaviour
         SyncToTargets();
     }
 
+    public void SetSpeed(float value)
+    {
+        _speed = Mathf.Clamp(value, SpeedMin, SpeedMax);
+    }
+
+    public void SetRadius(float value)
+    {
+        _radius = Mathf.Clamp(value, RadiusMin, RadiusMax);
+        if (UsePathMode())
+            BuildEnvelopePath();
+        else
+            SetValues();
+    }
+
+    public void SetEccentricity(float value)
+    {
+        _eccentricity = Mathf.Clamp(value, EccentricityMin, EccentricityMax);
+        if (!UsePathMode())
+            SetValues();
+    }
+
     public void RemoveTargetAt(int index)
     {
         if (_targets == null || index < 0 || index >= _targets.Length) return;
@@ -536,29 +569,4 @@ public class TransformOrbiter : MonoBehaviour
             SyncToTargets();
     }
 
-    public List<PropertyDefinition> GetProperties()
-    {
-        const string group = "Transform Orbiter";
-        var list = new List<PropertyDefinition>
-        {
-            new("Speed", 0.1f, 15f, _speed, value => _speed = value, group: group),
-            new("Radius", 0.5f, 20f, _radius, value =>
-            {
-                _radius = value;
-                if (UsePathMode())
-                    BuildEnvelopePath();
-                else
-                    SetValues();
-            }, group: group),
-        };
-        if (!UsePathMode())
-        {
-            list.Add(new("Eccentricity", 0.01f, 0.99f, _eccentricity, value =>
-            {
-                _eccentricity = value;
-                SetValues();
-            }, group: group));
-        }
-        return list;
-    }
 }

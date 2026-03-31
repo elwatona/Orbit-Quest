@@ -12,6 +12,9 @@ public static class OrbiterTuning
     public const float ImpulseForceMin = 0f;
     public const float ImpulseForceMax = 30f;
 
+    public const float RechargeDurationMin = 1f;
+    public const float RechargeDurationMax = 5f;
+
     public const float InertiaDampTimeMin = 0.5f;
     public const float InertiaDampTimeMax = 5f;
 

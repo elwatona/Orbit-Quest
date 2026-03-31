@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c3e660e56b9994494f061626ddff7c, type: 3}
+  m_Name: PlayerData
+  m_EditorClassIdentifier: 
+  _impulseResource: {fileID: 11400000, guid: b2000000000000000000000000000002, type: 2}
+  _thrusterResource: {fileID: 11400000, guid: 6457522a264666f489290660a6eb03d0, type: 2}
+  _inertiaResource: {fileID: 11400000, guid: a036e849658a2bf41847ab7f179f0818, type: 2}

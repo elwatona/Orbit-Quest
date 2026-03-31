@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject _orbGameObject;
     [SerializeField] Orb _orb;
     [FormerlySerializedAs("_uiManager")]
-    [SerializeField] DeveloperToolsUI _developerTools;
+    // [SerializeField] DeveloperToolsUI _developerTools;
     [SerializeField] PlayerInput _playerInput;
 
     InputAction _mousePositionAction;
@@ -151,18 +151,18 @@ public class PlayerController : MonoBehaviour
     public void DeveloperMode(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
+        // if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
         _developerMode = !_developerMode;
-        _developerTools.SetDeveloperMode(_developerMode);
+        // _developerTools.SetDeveloperMode(_developerMode);
     }
 
     public void TogglePanel(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
+        // if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
         int panelIndex = GetPanelIndexFromBinding(context);
         if (panelIndex == -1) return;
-        _developerTools.TogglePanel(panelIndex);
+        // _developerTools.TogglePanel(panelIndex);
     }
 
     /// <summary>
