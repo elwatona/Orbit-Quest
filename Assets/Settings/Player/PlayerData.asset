@@ -15,3 +15,4 @@ MonoBehaviour:
   _impulseResource: {fileID: 11400000, guid: b2000000000000000000000000000002, type: 2}
   _thrusterResource: {fileID: 11400000, guid: 6457522a264666f489290660a6eb03d0, type: 2}
   _inertiaResource: {fileID: 11400000, guid: a036e849658a2bf41847ab7f179f0818, type: 2}
+  _isInEditMode: 0

@@ -1,48 +1,50 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 
 public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 {
-    public const float BodyRadiusMin = 0.5f;
-    public const float BodyRadiusMax = 7.5f;
-    public const float OrbitRadiusMin = 1f;
-    public const float OrbitRadiusMax = 10f;
-    public const float GravityMin = 50f;
-    public const float GravityMax = 200f;
-    public const float TangentialForceMin = 2f;
-    public const float TangentialForceMax = 5f;
-    public const float RadialDampingMin = 0.5f;
-    public const float RadialDampingMax = 1.5f;
-    public const float RotationSpeedMin = 0f;
-    public const float RotationSpeedMax = 20f;
-
-    public static event Action<IEditable> OnAstroClicked;
+    public static event Action<IEditable> OnEditableClicked;
+    public event Action OnEditableDragged;
 
     [Header("Settings")]
+    [SerializeField] PlayerData _playerData;
     [SerializeField] OrbitData _orbitData;
     [SerializeField] BodyData _bodyData;
     [SerializeField] float _rotationSpeed = 5f;
-
     [SerializeField] Transform _transform, _baseTransform, _orbitTransform;
-    [FormerlySerializedAs("_uiManager")]
-    // [SerializeField] DeveloperToolsUI _developerTools;
+
     private AstroSpawnPreset _spawnSource;
     private IOrbitable _orbit;
     private BodyShader _baseShader;
     private TransformOrbiter _orbiter;
     private bool _isSelected;
 
-    public string DisplayName => _orbitData.type.ToString();
     public float BodyRadius => _bodyData.radius;
-    public float OrbitRadius => _orbitData.radius;
-    public float Gravity => _orbitData.gravity;
-    public float TangentialForce => _orbitData.tangentialForce;
-    public float RadialDamping => _orbitData.radialDamping;
-    public float RotationSpeed => _rotationSpeed;
+    public bool HasOrbiter() => _orbiter != null;
 
-    public AstroSpawnPreset SpawnSource => _spawnSource;
+    public EditableData Data => new EditableData
+    {
+        type = _orbitData.type,
+        body = new EditableBodyData
+        {
+            radius = _bodyData.radius,
+            rotationSpeed = _rotationSpeed
+        },
+        orbit = new EditableOrbitData
+        {
+            radius = _orbitData.radius,
+            gravity = _orbitData.gravity
+        },
+        orbiter = new EditableOrbiterData
+        {
+            speed = _orbiter?.Speed ?? 0f,
+            radius = _orbiter?.Radius ?? 0f,
+            eccentricity = _orbiter?.Eccentricity ?? 0f,
+            targets = _orbiter?.TargetsEditable?? new IEditable[0]
+        }
+    };
+
 
     void Awake()
     {
@@ -70,7 +72,6 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
         if(_orbit == null) _orbit = _orbitTransform?.GetComponent<IOrbitable>();
         if(_baseShader == null) _baseShader = new BodyShader(_baseTransform?.GetComponent<Renderer>());
         if(_orbiter == null) _orbiter = GetComponent<TransformOrbiter>();
-        // if (_developerTools == null) _developerTools = FindFirstObjectByType<DeveloperToolsUI>();
     }
     void UpdateBaseValues()
     {
@@ -91,41 +92,6 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
     {
         UpdateBaseValues();
         UpdateOrbitValues();
-    }
-
-    public void SetBodyRadius(float value)
-    {
-        _bodyData.radius = Mathf.Clamp(value, BodyRadiusMin, BodyRadiusMax);
-        UpdateBaseValues();
-    }
-
-    public void SetOrbitRadius(float value)
-    {
-        _orbitData.radius = Mathf.Clamp(value, OrbitRadiusMin, OrbitRadiusMax);
-        UpdateOrbitValues();
-    }
-
-    public void SetGravity(float value)
-    {
-        _orbitData.gravity = Mathf.Clamp(value, GravityMin, GravityMax);
-        UpdateOrbitValues();
-    }
-
-    public void SetTangentialForce(float value)
-    {
-        _orbitData.tangentialForce = Mathf.Clamp(value, TangentialForceMin, TangentialForceMax);
-        UpdateOrbitValues();
-    }
-
-    public void SetRadialDamping(float value)
-    {
-        _orbitData.radialDamping = Mathf.Clamp(value, RadialDampingMin, RadialDampingMax);
-        UpdateOrbitValues();
-    }
-
-    public void SetRotationSpeed(float value)
-    {
-        _rotationSpeed = Mathf.Clamp(value, RotationSpeedMin, RotationSpeedMax);
     }
 
     public void Selected()
@@ -158,18 +124,62 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        // if (_developerTools == null) _developerTools = FindFirstObjectByType<DeveloperToolsUI>();
-        // if (_developerTools == null || !_developerTools.IsAvailable || !_developerTools.IsDeveloperModeActive) return;
+        if(!_playerData.IsInEditMode || eventData.button != PointerEventData.InputButton.Left) return;
 
         Vector2 desiredPosition = Camera.main.ScreenToWorldPoint(eventData.position);
         _transform.position = desiredPosition;
+
+        OnEditableDragged?.Invoke();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
         if(eventData.button != PointerEventData.InputButton.Left) return;
 
-        OnAstroClicked?.Invoke(this);
+        OnEditableClicked?.Invoke(this);
+    }
+
+    public void UpdateBodyRadius(float radius)
+    {
+        _bodyData.radius = radius;
+        UpdateBaseValues();
+    }
+
+    public void UpdateBodyRotationSpeed(float rotationSpeed)
+    {
+        _rotationSpeed = rotationSpeed;
+    }
+
+    public void UpdateOrbitRadius(float radius)
+    {
+        _orbitData.radius = radius;
+        UpdateOrbitValues();
+    }
+
+    public void UpdateOrbitGravity(float gravity)
+    {
+        _orbitData.gravity = gravity;
+        UpdateOrbitValues();
+    }
+
+    public void UpdateOrbiterSpeed(float speed)
+    {
+        _orbiter.SetSpeed(speed);
+    }
+
+    public void UpdateOrbiterRadius(float radius)
+    {
+        _orbiter.SetRadius(radius);
+    }
+
+    public void UpdateOrbiterEccentricity(float eccentricity)
+    {
+        _orbiter.SetEccentricity(eccentricity);
+    }
+
+    public void UpdateOrbiterTargets(IEditable[] targets)
+    {
+        _orbiter.SetTargets(targets);
     }
 }
 [Serializable]

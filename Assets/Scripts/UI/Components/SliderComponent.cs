@@ -29,11 +29,11 @@ public class SliderComponent
     {
         Value = value;
         UpdateValueText(value);
-        UpdateSliderValue(value.ToString("F1"));
+        UpdateSliderValue(value.ToString("F2"));
     }
     public void UpdateValueText(float value)
     {
-        _valueText.text = value.ToString("F1");
+        _valueText.text = value.ToString("F2");
         OnValueChanged?.Invoke(value);
     }
     public void UpdateSliderValue(string value)

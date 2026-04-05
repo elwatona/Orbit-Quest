@@ -6,6 +6,7 @@ using TMPro;
 [Serializable]
 public class PanelController
 {
+    [SerializeField] GameObject _panelRoot;
     [SerializeField] Transform[] _sliders;
     [SerializeField] Transform[] _toggles;
     [SerializeField] Transform[] _dropdowns;
@@ -17,6 +18,14 @@ public class PanelController
         SliderComponents = CacheSliderComponents(_sliders);
         ToggleComponents = CacheToggleComponents(_toggles);
         DropdownComponents = CacheDropdownComponents(_dropdowns);
+    }
+    public void SetActive(bool active)
+    {
+        _panelRoot.SetActive(active);
+    }
+    public void ToggleActive()
+    {
+        SetActive(!_panelRoot.activeSelf);
     }
     private SliderComponent[] CacheSliderComponents(Transform[] sliderTransforms)
     {

@@ -46,13 +46,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9debeb82c230f141b8f9ad6aef3a4c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _playerData: {fileID: 11400000, guid: 347e9ea7581cb1545bbc944ad032bfff, type: 2}
   _orbitData:
     type: 0
     transform: {fileID: 0}
     radius: 2.57
-    gravity: 30
-    tangentialForce: 2
-    radialDamping: 1.5
+    gravity: 50
     velocity: {x: 0, y: 0, z: 0}
   _bodyData:
     radius: 0.5
@@ -116,7 +115,6 @@ MonoBehaviour:
     phiMax: 3.14
   _orbitRenderer: {fileID: 4009245453050338840}
   _transform: {fileID: 3348547534281573584}
-  _collapseTimer: 0
 --- !u!33 &2839508071611506227
 MeshFilter:
   m_ObjectHideFlags: 0

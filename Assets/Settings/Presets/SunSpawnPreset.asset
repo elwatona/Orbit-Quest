@@ -15,8 +15,6 @@ MonoBehaviour:
   _astroType: 1
   _orbitRadius: 6
   _gravity: 100
-  _tangentialForce: 2.5
-  _radialDamping: 0.7
-  _bodyRadius: 2
+  _bodyRadius: 4
   _baseColor: {r: 1, g: 0.9, b: 0.5, a: 1}
   _selectedColor: {r: 1, g: 0.95, b: 0.7, a: 1}

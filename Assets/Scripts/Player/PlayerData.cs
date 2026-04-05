@@ -5,13 +5,15 @@ using System;
 public class PlayerData : ScriptableObject
 {
     public event Action OrbiterConfigUpdated;
+    public event Action IsInEditModeUpdated;
     [SerializeField] ImpulseResource _impulseResource;
     [SerializeField] ThrusterResource _thrusterResource;
     [SerializeField] InertiaResource _inertiaResource;
-
+    [SerializeField] bool _isInEditMode = false;
     public ImpulseResource ImpulseResource => _impulseResource;
     public ThrusterResource ThrusterResource => _thrusterResource;
     public InertiaResource InertiaResource => _inertiaResource;
+    public bool IsInEditMode => _isInEditMode;
     public OrbiterSettings ToOrbiterSettings()
     {
         return new OrbiterSettings {
@@ -66,5 +68,10 @@ public class PlayerData : ScriptableObject
     {
         _inertiaResource.UpdateStabilizerMaxThrustSpeed(value);
         OrbiterConfigUpdated?.Invoke();
+    }
+    public void SetIsInEditMode(bool value)
+    {
+        _isInEditMode = value;
+        IsInEditModeUpdated?.Invoke();
     }
 }

@@ -142,7 +142,7 @@
                 {
                     "name": "",
                     "id": "a1b2c3d4-0001-4000-8000-000000000001",
-                    "path": "<Keyboard>/1",
+                    "path": "<Keyboard>/p",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -153,7 +153,7 @@
                 {
                     "name": "",
                     "id": "a1b2c3d4-0002-4000-8000-000000000002",
-                    "path": "<Keyboard>/2",
+                    "path": "<Keyboard>/s",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -164,7 +164,7 @@
                 {
                     "name": "",
                     "id": "a1b2c3d4-0003-4000-8000-000000000003",
-                    "path": "<Keyboard>/3",
+                    "path": "<Keyboard>/a",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",

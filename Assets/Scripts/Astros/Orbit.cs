@@ -61,7 +61,6 @@ public class Orbit : MonoBehaviour, IOrbitable
     {
         _runtimeData = data;
         _runtimeData.transform = _transform;
-        _runtimeData.radialDamping = Mathf.Lerp(15, 1, _runtimeData.gravity/100);
     }
 
 }

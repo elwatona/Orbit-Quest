@@ -1,17 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class TransformOrbiter : MonoBehaviour
 {
-    public const float SpeedMin = 0.1f;
-    public const float SpeedMax = 15f;
-    public const float RadiusMin = 0.5f;
-    public const float RadiusMax = 20f;
-    public const float EccentricityMin = 0.01f;
-    public const float EccentricityMax = 0.99f;
 
     [Header("Orbit")]
-    [SerializeField] Transform[] _targets = new Transform[1];
+    [SerializeField] Transform[] _targets;
     [Tooltip("Single target: semi-major axis. Multi target: extra clearance added to path margin.")]
     [SerializeField] float _radius = 5f;
     [Tooltip("Single target: mean motion (rad/s). Multi target: linear speed (world units/s) along path.")]
@@ -23,15 +18,6 @@ public class TransformOrbiter : MonoBehaviour
     [Tooltip("Body transform for collision margin (e.g. Base child). If unset, finds child named \"Base\".")]
     [SerializeField] Transform _orbiterBodyTransform;
 
-    const float PathMarginFactor = 0.5f;
-    const float PathMarginMax = 20f;
-    const int PathSampleMin = 48;
-    const int PathSampleMax = 128;
-    const float PathTargetSegmentLength = 0.6f;
-    const int PathSmoothPassesBaseline = 80;
-    const int PathSmoothPassesMax = 120;
-    const float JaggednessThreshold = 0.08f;
-
     private float _meanAnomaly;
     private Vector3 _focus;
     private List<Vector2> _pathPoints = new List<Vector2>();
@@ -40,13 +26,14 @@ public class TransformOrbiter : MonoBehaviour
     private float _pathParameter;
     private bool _radiusInitializedFromDistance;
     private bool _orbitStateDirty = true;
+    private IEditable[] _editableTargets;
 
     const int KeplerIterations = 5;
 
     public float Speed => _speed;
     public float Radius => _radius;
     public float Eccentricity => _eccentricity;
-    public bool IsPathMode => UsePathMode();
+    public IEditable[] TargetsEditable => _editableTargets;
 
     bool HasValidTargets()
     {
@@ -62,9 +49,19 @@ public class TransformOrbiter : MonoBehaviour
 
     void OnEnable()
     {
+        IEditable[] editableTargets = new IEditable[_targets.Length];
         CleanNullTargets();
         _orbitStateDirty = true;
         if (!HasValidTargets()) return;
+        
+        for(int i = 0; i < _targets.Length; i++)
+        {
+            _targets[i].TryGetComponent(out IEditable editable);
+            if(editable != null) editableTargets[i] = editable;
+        }
+        _editableTargets = editableTargets;
+        foreach(IEditable target in _editableTargets) target.OnEditableDragged += SyncToTargets;
+
         if (!_radiusInitializedFromDistance)
         {
             InitializeRadiusFromDistance();
@@ -110,19 +107,7 @@ public class TransformOrbiter : MonoBehaviour
     }
     void OnValidate()
     {
-        ClampArray();
-        if (!HasValidTargets()) return;
-        if (UsePathMode())
-        {
-            BuildEnvelopePath();
-            SetPathParameterFromPosition();
-            ApplyPathOrbit();
-        }
-        else
-        {
-            SetValues();
-            ApplyOrbit();
-        }
+        UpdateOrbit();
     }
     void Update()
     {
@@ -136,6 +121,24 @@ public class TransformOrbiter : MonoBehaviour
             ApplyPathOrbit();
         else
             ApplyOrbit();
+    }
+
+    public void UpdateOrbit()
+    {
+        ClampArray();
+        if (!HasValidTargets()) return;
+        if (UsePathMode())
+        {
+            BuildEnvelopePath();
+            SetPathParameterFromPosition();
+            ApplyPathOrbit();
+        }
+        else
+        {
+            SetValues();
+            ApplyOrbit();
+        }
+
     }
 
     /// <summary>Solve Kepler's equation M = E - e*sin(E) for eccentric anomaly E.</summary>
@@ -260,11 +263,11 @@ public class TransformOrbiter : MonoBehaviour
         Vector3 center = GetBarycenter();
         float systemRadius = GetSystemRadius(center);
         float minSafeMargin = GetMinimumSafeMargin();
-        float marginFromFactor = Mathf.Clamp(systemRadius * PathMarginFactor, 0f, PathMarginMax);
+        float marginFromFactor = Mathf.Clamp(systemRadius * AstroTuning.OrbiterPathMarginFactor, 0f, AstroTuning.OrbiterPathMarginMax);
         float effectiveMargin = minSafeMargin + marginFromFactor + _radius;
         float estimatedPathLength = 2f * Mathf.PI * (systemRadius + effectiveMargin);
 
-        int n = Mathf.Clamp(Mathf.CeilToInt(estimatedPathLength / PathTargetSegmentLength), PathSampleMin, PathSampleMax);
+        int n = Mathf.Clamp(Mathf.CeilToInt(estimatedPathLength / AstroTuning.OrbiterPathTargetSegmentLength), AstroTuning.OrbiterPathSampleMin, AstroTuning.OrbiterPathSampleMax);
 
         float[] rawMaxR = new float[n];
         float[] radii = new float[n];
@@ -297,7 +300,7 @@ public class TransformOrbiter : MonoBehaviour
             jaggedness += secondDiff;
         }
         jaggedness = (meanR > 0.001f) ? (jaggedness / n) / meanR : 0f;
-        int smoothPasses = Mathf.Min(PathSmoothPassesMax, PathSmoothPassesBaseline + Mathf.RoundToInt(jaggedness / JaggednessThreshold));
+        int smoothPasses = Mathf.Min(AstroTuning.OrbiterPathSmoothPassesMax, AstroTuning.OrbiterPathSmoothPassesBaseline + Mathf.RoundToInt(jaggedness / AstroTuning.OrbiterJaggednessThreshold));
 
         for (int pass = 0; pass < smoothPasses; pass++)
         {
@@ -464,8 +467,6 @@ public class TransformOrbiter : MonoBehaviour
     void ClampArray()
     {
         CleanNullTargets();
-        if (_targets == null || _targets.Length == 0)
-            _targets = new Transform[1];
     }
 
     void CleanNullTargets()
@@ -481,7 +482,7 @@ public class TransformOrbiter : MonoBehaviour
 
         if (count == 0)
         {
-            _targets = new Transform[1];
+            _targets = new Transform[0];
             return;
         }
 
@@ -498,43 +499,23 @@ public class TransformOrbiter : MonoBehaviour
         _targets = cleaned;
     }
 
-    /// <summary>Elimina referencias nulas del array de targets. Llamar antes de leer la lista (p. ej. desde la UI).</summary>
-    public void EnsureTargetsClean()
+    public void SetTargets(IEditable[] targets)
     {
-        CleanNullTargets();
-        if (_targets == null || _targets.Length == 0)
-            _targets = new Transform[1];
-    }
-
-    public int GetTargetCount() => _targets?.Length ?? 0;
-
-    public Transform GetTarget(int index)
-    {
-        if (_targets == null || index < 0 || index >= _targets.Length)
-            return null;
-        return _targets[index];
-    }
-
-    public void AddTarget(Transform t)
-    {
-        if (t == null) return;
-        int len = _targets != null ? _targets.Length : 0;
-        var next = new Transform[len + 1];
-        for (int i = 0; i < len; i++)
-            next[i] = _targets[i];
-        next[len] = t;
-        _targets = next;
+        foreach(IEditable target in _editableTargets) target.OnEditableDragged -= SyncToTargets;
+        foreach(IEditable target in targets) target.OnEditableDragged += SyncToTargets;
+        _targets = targets.Select(target => target.transform).ToArray();
+        _editableTargets = targets;
         SyncToTargets();
     }
 
     public void SetSpeed(float value)
     {
-        _speed = Mathf.Clamp(value, SpeedMin, SpeedMax);
+        _speed = Mathf.Clamp(value, AstroTuning.OrbiterSpeedMin, AstroTuning.OrbiterSpeedMax);
     }
 
     public void SetRadius(float value)
     {
-        _radius = Mathf.Clamp(value, RadiusMin, RadiusMax);
+        _radius = Mathf.Clamp(value, AstroTuning.OrbiterRadiusMin, AstroTuning.OrbiterRadiusMax);
         if (UsePathMode())
             BuildEnvelopePath();
         else
@@ -543,30 +524,9 @@ public class TransformOrbiter : MonoBehaviour
 
     public void SetEccentricity(float value)
     {
-        _eccentricity = Mathf.Clamp(value, EccentricityMin, EccentricityMax);
+        _eccentricity = Mathf.Clamp(value, AstroTuning.OrbiterEccentricityMin, AstroTuning.OrbiterEccentricityMax);
         if (!UsePathMode())
             SetValues();
-    }
-
-    public void RemoveTargetAt(int index)
-    {
-        if (_targets == null || index < 0 || index >= _targets.Length) return;
-        int len = _targets.Length;
-        if (len <= 1)
-        {
-            _targets = new Transform[1];
-            return;
-        }
-        var next = new Transform[len - 1];
-        int j = 0;
-        for (int i = 0; i < len; i++)
-        {
-            if (i != index)
-                next[j++] = _targets[i];
-        }
-        _targets = next;
-        if (HasValidTargets())
-            SyncToTargets();
     }
 
 }

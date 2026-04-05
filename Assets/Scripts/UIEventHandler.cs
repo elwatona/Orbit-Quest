@@ -16,8 +16,8 @@ public enum RuntimeUIEvent
 }
 public class UIEventHandler : MonoBehaviour
 {
-    public static event Action<RuntimeUIEvent> UIEvent;
-
+    public static event Action<RuntimeUIEvent> UIRuntimeEvent;
+    public static event Action<PanelEnum> UIPanelEvent;
     [SerializeField] PlayerData _playerData;
     [SerializeField] bool _debug = false;
     void OnEnable()
@@ -34,12 +34,14 @@ public class UIEventHandler : MonoBehaviour
         _playerData.ImpulseResource.ImpulseSettingsChanged += HandleImpulseSettingsChanged;
         _playerData.InertiaResource.InertiaSettingsChanged += HandleInertiaSettingsChanged;
         _playerData.ThrusterResource.ThrusterSettingsChanged += HandleThrusterSettingsChanged;
+        PlayerController.OnPanelToggled += HandlePanelToggled;
     }
     public void UnsubscribeResourceEventsFromUIEvent()
     {
         _playerData.ImpulseResource.ImpulseSettingsChanged -= HandleImpulseSettingsChanged;
         _playerData.InertiaResource.InertiaSettingsChanged -= HandleInertiaSettingsChanged;
         _playerData.ThrusterResource.ThrusterSettingsChanged -= HandleThrusterSettingsChanged;
+        PlayerController.OnPanelToggled -= HandlePanelToggled;
     }
     void HandleImpulseSettingsChanged(ImpulseSettingsChangeType changeType)
     {
@@ -47,16 +49,16 @@ public class UIEventHandler : MonoBehaviour
         switch (changeType)
         {
             case ImpulseSettingsChangeType.EnergyChanged:
-                UIEvent?.Invoke(RuntimeUIEvent.ImpulseEnergyChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.ImpulseEnergyChanged);
                 break;
             case ImpulseSettingsChangeType.ImpulseForce:
-                UIEvent?.Invoke(RuntimeUIEvent.ImpulseForceChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.ImpulseForceChanged);
                 break;
             case ImpulseSettingsChangeType.RechargeDuration:
-                UIEvent?.Invoke(RuntimeUIEvent.ImpulseRechargeDurationChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.ImpulseRechargeDurationChanged);
                 break;
             case ImpulseSettingsChangeType.ImpulseMode:
-                UIEvent?.Invoke(RuntimeUIEvent.ImpulseModeChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.ImpulseModeChanged);
                 break;
         }
     }
@@ -66,13 +68,13 @@ public class UIEventHandler : MonoBehaviour
         switch (changeType)
         {
             case InertiaSettingsChangeType.InertiaStabilizer:
-                UIEvent?.Invoke(RuntimeUIEvent.InertiaStabilizerChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.InertiaStabilizerChanged);
                 break;
             case InertiaSettingsChangeType.InertiaDampTime:
-                UIEvent?.Invoke(RuntimeUIEvent.InertiaDampTimeChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.InertiaDampTimeChanged);
                 break;
             case InertiaSettingsChangeType.StabilizerMaxThrustSpeed:
-                UIEvent?.Invoke(RuntimeUIEvent.StabilizerMaxThrustSpeedChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.StabilizerMaxThrustSpeedChanged);
                 break;
         }
     }
@@ -82,14 +84,18 @@ public class UIEventHandler : MonoBehaviour
         switch (changeType)
         {
             case ThrusterSettingsChangeType.ThrustForce:
-                UIEvent?.Invoke(RuntimeUIEvent.ThrustForceChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.ThrustForceChanged);
                 break;
             case ThrusterSettingsChangeType.MinThrustAssist:
-                UIEvent?.Invoke(RuntimeUIEvent.MinThrustAssistChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.MinThrustAssistChanged);
                 break;
             case ThrusterSettingsChangeType.SpeedChanged:
-                UIEvent?.Invoke(RuntimeUIEvent.SpeedChanged);
+                UIRuntimeEvent?.Invoke(RuntimeUIEvent.SpeedChanged);
                 break;
         }
+    }
+    void HandlePanelToggled(PanelEnum panel)
+    {
+        UIPanelEvent?.Invoke(panel);
     }
 }

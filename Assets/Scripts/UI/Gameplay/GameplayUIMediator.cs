@@ -1,11 +1,14 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using TMPro;
 
 public class GameplayUIMediator : MonoBehaviour
 {
     [SerializeField] PlayerData _playerData;
     [SerializeField] Transform _orbPanelTransform;
+    [SerializeField] GameObject _controlsPanel;
+    [SerializeField] TextMeshProUGUI _editModeText, _versionText;
 
     private OrbPanel _orbPanel;
     Dictionary<RuntimeUIEvent, Action> _eventHandlers => new Dictionary<RuntimeUIEvent, Action>
@@ -18,6 +21,7 @@ public class GameplayUIMediator : MonoBehaviour
     void Awake()
     {
         _orbPanel = new OrbPanel(_orbPanelTransform);
+        _versionText.text = $"{Application.version} {Application.unityVersion}";
     }
 
     void Start()
@@ -30,28 +34,36 @@ public class GameplayUIMediator : MonoBehaviour
         _orbPanel.UpdateSpeedText(_playerData.ThrusterResource.Speed);
         _orbPanel.UpdateImpulseBar(_playerData.ImpulseResource.NormalizedEnergy);
         _orbPanel.UpdateInertiaStabilizerText(_playerData.InertiaResource.InertiaStabilizer);
+        HandleEditModeToggled();
     }
 
     void OnEnable()
     {
-        UIEventHandler.UIEvent += HandleRuntimeUiEvent;
+        UIEventHandler.UIRuntimeEvent += HandleRuntimeUiEvent;
+        UIEventHandler.UIPanelEvent += HandlePanelToggled;
+        _playerData.IsInEditModeUpdated += HandleEditModeToggled;
     }
 
     void OnDisable()
     {
-        UIEventHandler.UIEvent -= HandleRuntimeUiEvent;
+        UIEventHandler.UIRuntimeEvent -= HandleRuntimeUiEvent;
+        UIEventHandler.UIPanelEvent -= HandlePanelToggled;
+        _playerData.IsInEditModeUpdated -= HandleEditModeToggled;
     }
 
     void HandleRuntimeUiEvent(RuntimeUIEvent runtimeUiEvent)
     {
-        Debug.Log("HandleRuntimeUiEvent: " + runtimeUiEvent);
         if (_eventHandlers.TryGetValue(runtimeUiEvent, out Action handler))
             handler.Invoke();
     }
 
+    void HandlePanelToggled(PanelEnum panel)
+    {
+        if(panel == PanelEnum.Controls) _controlsPanel.SetActive(!_controlsPanel.activeSelf);
+    }
+
     void HandleSpeedChanged()
     {
-        Debug.Log("HandleSpeedChanged");
         _orbPanel.UpdateSpeedText(_playerData.ThrusterResource.Speed);
     }
 
@@ -63,5 +75,11 @@ public class GameplayUIMediator : MonoBehaviour
     void HandleInertiaStabilizerChanged()
     {
         _orbPanel.UpdateInertiaStabilizerText(_playerData.InertiaResource.InertiaStabilizer);
+    }
+
+    void HandleEditModeToggled()
+    {
+        _editModeText.color = _playerData.IsInEditMode ? Color.green : Color.white;
+        _editModeText.text = _playerData.IsInEditMode ? "Edit Mode On" : "Edit Mode Off";
     }
 }

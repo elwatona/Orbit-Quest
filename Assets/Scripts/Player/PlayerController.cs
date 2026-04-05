@@ -1,9 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
+    public static event Action<PanelEnum> OnPanelToggled;
     const string ActionMapPlayer = "Player";
     const string ActionMousePosition = "Mouse Position";
 
@@ -13,14 +14,13 @@ public class PlayerController : MonoBehaviour
     [Header("Settings")]
     [SerializeField] GameObject _orbGameObject;
     [SerializeField] Orb _orb;
-    [FormerlySerializedAs("_uiManager")]
-    // [SerializeField] DeveloperToolsUI _developerTools;
     [SerializeField] PlayerInput _playerInput;
+    [SerializeField] PlayerData _playerData;
 
     InputAction _mousePositionAction;
     Vector2 _lastMoveValue;
     bool _applyThrustHeld;
-    bool _developerMode;
+    bool _orbCanReadInputs => _orb != null & _orbGameObject.activeSelf & !_playerData.IsInEditMode;
 
     void Awake()
     {
@@ -32,7 +32,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (_orb == null || !_orbGameObject.activeSelf) return;
+        if (!_orbCanReadInputs) return;
         if (_mousePositionAction == null || !_mousePositionAction.enabled) return;
 
         Vector2 screenPos = _mousePositionAction.ReadValue<Vector2>();
@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>Called by the Apply Thrust input action (right click). Wire Player/Apply Thrust (Started and Canceled) to this. While held, thrust is applied continuously towards the cursor.</summary>
     public void ApplyThrust(InputAction.CallbackContext context)
     {
-        if (!_orbGameObject.activeSelf || _orb == null) return;
+        if (!_orbCanReadInputs) return;
 
         if (context.started)
             _applyThrustHeld = true;
@@ -70,8 +70,10 @@ public class PlayerController : MonoBehaviour
 
     public void SetSpawnPoint(InputAction.CallbackContext context)
     {
-        if(_orbGameObject.activeSelf || !context.started) return;
-        
+        if(!context.started) return;
+        if(!_playerData.IsInEditMode) return;
+        if(_orbGameObject.activeSelf) return;
+
         Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
 
@@ -79,7 +81,7 @@ public class PlayerController : MonoBehaviour
     }
     public void Aim(InputAction.CallbackContext context)
     {
-        if (_orb == null || !_orbGameObject.activeSelf) return;
+        if (!_orbCanReadInputs) return;
         if (context.started)
             _orb.SetAiming(true);
         else if (context.canceled)
@@ -87,7 +89,7 @@ public class PlayerController : MonoBehaviour
     }
     public void Impulse(InputAction.CallbackContext context)
     {
-        if(!context.started || !_orbGameObject.activeSelf) return;
+        if(!context.started || !_orbCanReadInputs) return;
 
         Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
@@ -98,7 +100,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>Called by the Inertia Stabilizer input action (Left Ctrl). Toggles inertia stabilizer on/off.</summary>
     public void ToggleInertiaStabilizer(InputAction.CallbackContext context)
     {
-        if (!context.started || !_orbGameObject.activeSelf || _orb == null) return;
+        if (!context.started || !_orbCanReadInputs) return;
         _orb.ToggleInertiaStabilizer();
     }
 
@@ -106,7 +108,7 @@ public class PlayerController : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         _lastMoveValue = context.ReadValue<Vector2>();
-        if (_orb == null || !_orbGameObject.activeSelf) return;
+        if (!_orbCanReadInputs) return;
         if (!_applyThrustHeld)
             _orb.SetThrustInput(_lastMoveValue);
     }
@@ -119,7 +121,7 @@ public class PlayerController : MonoBehaviour
         {
             _applyThrustHeld = false;
             _lastMoveValue = Vector2.zero;
-            _orbGameObject.transform.localPosition = Vector3.zero;
+            _orbGameObject.transform.localPosition = transform.position;
             _orbGameObject.SetActive(true);
         }
     }
@@ -137,7 +139,7 @@ public class PlayerController : MonoBehaviour
     public void CreateAstro(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        if (_astroFactory == null) return;
+        if (_astroFactory == null || !_playerData.IsInEditMode) return;
 
         AstroType type = GetAstroTypeFromBinding(context);
         if (type == AstroType.None) return;
@@ -151,18 +153,15 @@ public class PlayerController : MonoBehaviour
     public void DeveloperMode(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        // if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
-        _developerMode = !_developerMode;
-        // _developerTools.SetDeveloperMode(_developerMode);
+        _playerData.SetIsInEditMode(!_playerData.IsInEditMode);
     }
 
     public void TogglePanel(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        // if (_developerTools == null || !_developerTools.isActiveAndEnabled) return;
-        int panelIndex = GetPanelIndexFromBinding(context);
-        if (panelIndex == -1) return;
-        // _developerTools.TogglePanel(panelIndex);
+        PanelEnum panel = GetPanelIndexFromBinding(context);
+        if (panel == PanelEnum.None) return;
+        OnPanelToggled?.Invoke(panel);
     }
 
     /// <summary>
@@ -173,20 +172,20 @@ public class PlayerController : MonoBehaviour
         string displayName = context.control?.displayName ?? "";
         return displayName switch
         {
-            "1" => AstroType.Planet,
-            "2" => AstroType.Asteroid,
-            "3" => AstroType.Sun,
+            "P" => AstroType.Planet,
+            "A" => AstroType.Asteroid,
+            "S" => AstroType.Sun,
             _ => AstroType.Planet
         };
     }
-    private static int GetPanelIndexFromBinding(InputAction.CallbackContext context)
+    private static PanelEnum GetPanelIndexFromBinding(InputAction.CallbackContext context)
     {
         string displayName = context.control?.displayName ?? "";
         return displayName switch
         {
-            "F2" => 0,
-            "F3" => 1,
-            _ => -1
+            "F2" => PanelEnum.Controls,
+            "F3" => PanelEnum.PlayerData,
+            _ => PanelEnum.None
         };
     }
 }
