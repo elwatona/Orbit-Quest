@@ -56,7 +56,7 @@ public class EditorUIMediator : MonoBehaviour
     }
     void AstroSelected(IEditable editable)
     {
-        _selectedAstros.Clear();
+        _selectedAstros?.Clear();
         _editorPanelsMediator.InyectEditable(editable);
     }
     void TargetClicked(IEditable editable)
@@ -87,10 +87,10 @@ public class EditorUIMediator : MonoBehaviour
     }
     public void StopSelectingTargets()
     {
+        _isSelectingTargets = false;
         _editorPanelsMediator.UpdateTargetsToOrbit(_selectedAstros.ToArray());
         foreach(IEditable editable in _selectedAstros) editable.Deselected();
         _selectedAstros.Clear();
-        _isSelectingTargets = false;
         _editorPanelsMediator.SelectedEditable.Selected();
         _editorPanelsMediator.TogglePanels(!_isSelectingTargets);
         _rootTargetsToOrbitButtons.SetActive(_isSelectingTargets);

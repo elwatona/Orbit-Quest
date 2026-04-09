@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using NUnit.Framework;
 
 public class EditorPanelsMediator
 {
@@ -107,8 +108,8 @@ public class EditorPanelsMediator
     {
         PanelController panel = _panelControllers[1];
 
-        panel.SliderComponents[0].OnValueChanged -= SelectedEditable.UpdateOrbiterSpeed;
-        panel.SliderComponents[1].OnValueChanged -= SelectedEditable.UpdateOrbiterRadius;
+        panel.SliderComponents[0].OnValueChanged -= SelectedEditable.UpdateOrbiterRadius;
+        panel.SliderComponents[1].OnValueChanged -= SelectedEditable.UpdateOrbiterSpeed;
         panel.SliderComponents[2].OnValueChanged -= SelectedEditable.UpdateOrbiterEccentricity;
     }
     void DisconnectBodyOrbitDataFromUI()
@@ -171,13 +172,27 @@ public class EditorPanelsMediator
         _rootPanelButtons.SetActive(active);
         for (int i = 0; i < _panelControllers.Length; i++)
         {
+            PanelStrategy(i, active);
             TogglePanel(i, active);
+        }
+    }
+    private void PanelStrategy(int index, bool active)
+    {
+        switch (index)
+        {
+            case 1:
+                _panelControllers[index].SetComponentsActiveValue(PanelController.ComponentType.Slider, 2, active & active ? SelectedEditable.Data.orbiter.targets.Length > 1 : false);
+                break;
+            case 2:
+                _panelControllers[index].SetComponentsActiveValue(PanelController.ComponentType.Slider, 0, active & active ? SelectedEditable.Data.type != AstroType.Sun : false);
+                _panelControllers[index].SetComponentsActiveValue(PanelController.ComponentType.Slider, 1, active & active ? SelectedEditable.Data.type != AstroType.Sun : false);
+                break;
         }
     }
     public void TogglePanel(int index, bool active)
     {
-        bool hasOrbiter = SelectedEditable != null ? SelectedEditable.HasOrbiter() : false;
-        if(index == 1) active = active & hasOrbiter;
+            bool hasOrbiter = SelectedEditable != null ? SelectedEditable.HasOrbiter() : false;
+            active = index == 1 ? active & hasOrbiter : active;
         _panelControllers[index].SetActive(active);
     }
     public void TogglePanel(int index)

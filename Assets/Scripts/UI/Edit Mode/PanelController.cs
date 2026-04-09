@@ -13,6 +13,12 @@ public class PanelController
     public SliderComponent[] SliderComponents { get; private set; }
     public ToggleComponent[] ToggleComponents { get; private set; }
     public DropdownComponent[] DropdownComponents { get; private set; }
+    public enum ComponentType
+    {
+        Slider,
+        Toggle,
+        Dropdown
+    }
     public void Initialize()
     {
         SliderComponents = CacheSliderComponents(_sliders);
@@ -22,10 +28,30 @@ public class PanelController
     public void SetActive(bool active)
     {
         _panelRoot.SetActive(active);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(_panelRoot.transform as RectTransform);
     }
     public void ToggleActive()
     {
         SetActive(!_panelRoot.activeSelf);
+    }
+    public void SetComponentsActiveValue(ComponentType type, int index, bool active)
+    {
+        switch (type)
+        {
+            case ComponentType.Slider:
+                SliderComponents[index].SetActive(active);
+                break;
+            case ComponentType.Toggle:
+                ToggleComponents[index].SetActive(active);
+                break;
+            case ComponentType.Dropdown:
+                DropdownComponents[index].SetActive(active);
+                break;
+            default:
+                Debug.LogError("Invalid component type: " + type);
+                break;
+        }
+        LayoutRebuilder.ForceRebuildLayoutImmediate(_panelRoot.transform as RectTransform);
     }
     private SliderComponent[] CacheSliderComponents(Transform[] sliderTransforms)
     {

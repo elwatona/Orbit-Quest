@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -26,7 +27,7 @@ public class TransformOrbiter : MonoBehaviour
     private float _pathParameter;
     private bool _radiusInitializedFromDistance;
     private bool _orbitStateDirty = true;
-    private IEditable[] _editableTargets;
+    private IEditable[] _editableTargets = Array.Empty<IEditable>();
 
     const int KeplerIterations = 5;
 
@@ -52,7 +53,8 @@ public class TransformOrbiter : MonoBehaviour
         IEditable[] editableTargets = new IEditable[_targets.Length];
         CleanNullTargets();
         _orbitStateDirty = true;
-        if (!HasValidTargets()) return;
+        if (!HasValidTargets())
+            return;
         
         for(int i = 0; i < _targets.Length; i++)
         {
@@ -112,11 +114,11 @@ public class TransformOrbiter : MonoBehaviour
     void Update()
     {
         if (!HasValidTargets()) return;
-        if (_orbitStateDirty)
-        {
+        // if (_orbitStateDirty)
+        // {
             SyncToTargets();
-            _orbitStateDirty = false;
-        }
+        //     _orbitStateDirty = false;
+        // }
         if (UsePathMode())
             ApplyPathOrbit();
         else
@@ -501,11 +503,24 @@ public class TransformOrbiter : MonoBehaviour
 
     public void SetTargets(IEditable[] targets)
     {
-        foreach(IEditable target in _editableTargets) target.OnEditableDragged -= SyncToTargets;
-        foreach(IEditable target in targets) target.OnEditableDragged += SyncToTargets;
+        if (targets == null)
+            targets = Array.Empty<IEditable>();
+        foreach (IEditable target in _editableTargets) target.OnEditableDragged -= SyncToTargets;
+        foreach (IEditable target in targets) target.OnEditableDragged += SyncToTargets;
         _targets = targets.Select(target => target.transform).ToArray();
         _editableTargets = targets;
         SyncToTargets();
+    }
+    private void SubscribeToTargets()
+    {
+        foreach (IEditable target in _editableTargets) 
+        {
+            target.OnEditableDragged += SyncToTargets;
+        }
+    }
+    private void UnsubscribeFromTargets()
+    {
+        foreach (IEditable target in _editableTargets) target.OnEditableDragged -= SyncToTargets;
     }
 
     public void SetSpeed(float value)
