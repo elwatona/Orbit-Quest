@@ -51,6 +51,7 @@ public class Orb : MonoBehaviour
         OnSpawn?.Invoke();
 
         _playerData.OrbiterConfigUpdated += SyncOrbiterFromConfig;
+        _playerData.SetPlayerStatus(PlayerStatus.Alive);
     }
 
     void FixedUpdate()
@@ -138,6 +139,7 @@ public class Orb : MonoBehaviour
         OnDespawn?.Invoke();
 
         _playerData.OrbiterConfigUpdated -= SyncOrbiterFromConfig;
+        _playerData.SetPlayerStatus(PlayerStatus.Dead);
     }
 
     public void SetAiming(bool active)

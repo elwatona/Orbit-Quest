@@ -34,14 +34,14 @@ public class UIEventHandler : MonoBehaviour
         _playerData.ImpulseResource.ImpulseSettingsChanged += HandleImpulseSettingsChanged;
         _playerData.InertiaResource.InertiaSettingsChanged += HandleInertiaSettingsChanged;
         _playerData.ThrusterResource.ThrusterSettingsChanged += HandleThrusterSettingsChanged;
-        PlayerController.OnPanelToggled += HandlePanelToggled;
+        PlayerInputController.OnPanelToggled += HandlePanelToggled;
     }
     public void UnsubscribeResourceEventsFromUIEvent()
     {
         _playerData.ImpulseResource.ImpulseSettingsChanged -= HandleImpulseSettingsChanged;
         _playerData.InertiaResource.InertiaSettingsChanged -= HandleInertiaSettingsChanged;
         _playerData.ThrusterResource.ThrusterSettingsChanged -= HandleThrusterSettingsChanged;
-        PlayerController.OnPanelToggled -= HandlePanelToggled;
+        PlayerInputController.OnPanelToggled -= HandlePanelToggled;
     }
     void HandleImpulseSettingsChanged(ImpulseSettingsChangeType changeType)
     {

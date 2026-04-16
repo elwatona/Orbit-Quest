@@ -7,13 +7,13 @@ public class EditorUIMediator : MonoBehaviour
     [SerializeField] PlayerData _playerData;
     [SerializeField] PanelController[] _panelControllers;
     [SerializeField] ScrollComponent _targetsToOrbitScrollComponent;
-    [SerializeField] GameObject _rootPanelButtons, _rootTargetsToOrbitButtons, _controlEditData, _controlGameplayData;
+    [SerializeField] GameObject _rootTargetsToOrbitButtons, _controlEditData, _controlGameplayData;
     private EditorPanelsMediator _editorPanelsMediator;
     private List<IEditable> _selectedAstros = new List<IEditable>();
     private bool _isSelectingTargets;
     void Awake()
     {
-        _editorPanelsMediator = new EditorPanelsMediator(_panelControllers, _playerData, _targetsToOrbitScrollComponent, _rootPanelButtons);
+        _editorPanelsMediator = new EditorPanelsMediator(_panelControllers, _playerData, _targetsToOrbitScrollComponent);
     }
     void OnEnable()
     {
@@ -24,9 +24,10 @@ public class EditorUIMediator : MonoBehaviour
     }
     void Start()
     {
-        _rootPanelButtons.SetActive(false);
         _rootTargetsToOrbitButtons.SetActive(false);
-        _editorPanelsMediator.TogglePanels(false);
+        _editorPanelsMediator.TogglePanel(0,false);
+        _editorPanelsMediator.TogglePanel(1,false);
+        _editorPanelsMediator.TogglePanel(2,false);
         HandleEditModeToggled();
     }
     void OnDisable()
@@ -116,6 +117,5 @@ public class EditorUIMediator : MonoBehaviour
         _editorPanelsMediator.SelectedEditable?.Deselected();
         _editorPanelsMediator.TogglePanel(1, false);
         _editorPanelsMediator.TogglePanel(2, false);
-        _rootPanelButtons.SetActive(false);
     }
 }

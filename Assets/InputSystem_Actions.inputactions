@@ -6,13 +6,13 @@
             "id": "df70fa95-8a34-4494-b137-73ab6b9c7d37",
             "actions": [
                 {
-                    "name": "Interact",
-                    "type": "Button",
-                    "id": "852140f2-7766-474d-8707-702459ba45f3",
-                    "expectedControlType": "",
+                    "name": "Zoom",
+                    "type": "Value",
+                    "id": "de9e4f70-a066-4735-9440-f9b1c32461c4",
+                    "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": "Hold",
-                    "initialStateCheck": false
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Aim",
@@ -69,28 +69,10 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Mouse Position",
-                    "type": "Value",
-                    "id": "e7f8a9b0-5678-4c1d-9e2f-3a4b5c6d7e8f",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Apply Thrust",
-                    "type": "Button",
-                    "id": "f9a0b1c2-6789-4d2e-0f3a-4b5c6d7e8f9a",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Developer Mode",
                     "type": "Button",
                     "id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -99,7 +81,7 @@
                     "name": "Inertia Stabilizer",
                     "type": "Button",
                     "id": "b3c4d5e6-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -107,15 +89,70 @@
             ],
             "bindings": [
                 {
-                    "name": "",
-                    "id": "1c04ea5f-b012-41d1-a6f7-02e963b52893",
-                    "path": "<Mouse>/leftButton",
+                    "name": "Mouse Scroll",
+                    "id": "9a123764-1dbc-4296-a76c-90ed577304e6",
+                    "path": "1DAxis",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Interact",
-                    "isComposite": false,
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": true,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "fbd82cba-9288-4dfa-a379-a1b6cfa39284",
+                    "path": "<Mouse>/scroll/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "325f843e-58a0-4457-b8d7-85afdc97bd89",
+                    "path": "<Mouse>/scroll/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Keyboard Keys",
+                    "id": "982b6eb5-3259-4011-9900-fc36cf75c4e9",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "848b1ad0-a165-43e6-bd47-02bbf93f2aeb",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "849f26ee-e737-41ad-a553-0f615df621f0",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -295,28 +332,6 @@
                 },
                 {
                     "name": "",
-                    "id": "b0c1d2e3-7890-4e3f-1a4b-5c6d7e8f9a0b",
-                    "path": "<Mouse>/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Mouse Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "c1d2e3f4-8901-4f4a-2b5c-6d7e8f9a0b1c",
-                    "path": "<Mouse>/rightButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Apply Thrust",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "d2e3f4a5-9012-4a5b-3c6d-7e8f9a0b1c2d",
                     "path": "<Keyboard>/f1",
                     "interactions": "",
@@ -356,7 +371,7 @@
                     "name": "Submit",
                     "type": "Button",
                     "id": "7607c7b6-cd76-4816-beef-bd0341cfe950",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -365,7 +380,7 @@
                     "name": "Cancel",
                     "type": "Button",
                     "id": "15cef263-9014-4fd5-94d9-4e4a6234a6ef",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

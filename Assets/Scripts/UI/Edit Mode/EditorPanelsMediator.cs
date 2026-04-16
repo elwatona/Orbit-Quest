@@ -8,18 +8,16 @@ public class EditorPanelsMediator
     readonly PlayerData _playerData;
     readonly PanelController[] _panelControllers;
     readonly ScrollComponent _targetsToOrbitScrollComponent;
-    readonly GameObject _rootPanelButtons;
     private EditableOrbitData _editableOrbitData;
     private EditableBodyData _editableBodyData;
     private EditableOrbiterData _editableOrbiterData;
     public IEditable SelectedEditable { get; private set; }
     public List<IEditable> TargetsToOrbit { get; private set; } = new List<IEditable>();
-    public EditorPanelsMediator(PanelController[] panelControllers, PlayerData playerData, ScrollComponent targetsToOrbitScrollComponent, GameObject rootPanelButtons)
+    public EditorPanelsMediator(PanelController[] panelControllers, PlayerData playerData, ScrollComponent targetsToOrbitScrollComponent)
     {
         _panelControllers = panelControllers;
         _playerData = playerData;
         _targetsToOrbitScrollComponent = targetsToOrbitScrollComponent;
-        _rootPanelButtons = rootPanelButtons;
         Initialize();
     }
     void Initialize()
@@ -49,7 +47,8 @@ public class EditorPanelsMediator
     {
         if(SelectedEditable.HasOrbiter()) LoadOrbiterDataToUI();
         LoadBodyOrbitDataToUI();
-        TogglePanels(true);
+        TogglePanel(1,true);
+        TogglePanel(2,true);
     }
     void DisconnectAstroDataFromUI()
     {
@@ -169,30 +168,15 @@ public class EditorPanelsMediator
     }
     public void TogglePanels(bool active)
     {
-        _rootPanelButtons.SetActive(active);
         for (int i = 0; i < _panelControllers.Length; i++)
         {
-            PanelStrategy(i, active);
             TogglePanel(i, active);
-        }
-    }
-    private void PanelStrategy(int index, bool active)
-    {
-        switch (index)
-        {
-            case 1:
-                _panelControllers[index].SetComponentsActiveValue(PanelController.ComponentType.Slider, 2, active & active ? SelectedEditable.Data.orbiter.targets.Length > 1 : false);
-                break;
-            case 2:
-                _panelControllers[index].SetComponentsActiveValue(PanelController.ComponentType.Slider, 0, active & active ? SelectedEditable.Data.type != AstroType.Sun : false);
-                _panelControllers[index].SetComponentsActiveValue(PanelController.ComponentType.Slider, 1, active & active ? SelectedEditable.Data.type != AstroType.Sun : false);
-                break;
         }
     }
     public void TogglePanel(int index, bool active)
     {
-            bool hasOrbiter = SelectedEditable != null ? SelectedEditable.HasOrbiter() : false;
-            active = index == 1 ? active & hasOrbiter : active;
+        bool hasOrbiter = SelectedEditable != null ? SelectedEditable.HasOrbiter() : false;
+        active = index == 1 ? active & hasOrbiter : active;
         _panelControllers[index].SetActive(active);
     }
     public void TogglePanel(int index)
