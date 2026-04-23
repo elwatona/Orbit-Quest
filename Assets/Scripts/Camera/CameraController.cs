@@ -3,8 +3,15 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Camera))]
-public class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour, ILevelBounds
 {
+#region ILevelBounds
+    public Limits Limits { get; private set; }
+    public void SetLimits(Limits limits)
+    {
+        Limits = limits;
+    }
+#endregion
     public enum CameraViewType
     {
         SideView = 0,
@@ -29,12 +36,6 @@ public class CameraController : MonoBehaviour
 
     [Header("Target")]
     [SerializeField] Transform _target;
-
-    [Header("Bounds (world space)")]
-    [SerializeField] float _minX = -20f;
-    [SerializeField] float _maxX = 20f;
-    [SerializeField] float _minY = -10f;
-    [SerializeField] float _maxY = 10f;
 
     [Header("Follow")]
     [SerializeField] float _positionSmoothTime = 0.12f;
@@ -61,12 +62,12 @@ public class CameraController : MonoBehaviour
     [SerializeField] float _maxZoom = 8f;
     [SerializeField] float _zoomLerpSpeed = 8f;
 
-    Camera _camera;
-    Vector3 _positionVelocity;
-    Vector3 _currentOffset;
-    Quaternion _targetRotation;
-    float _targetZoom;
-    float _distanceZoomBaseOffsetMagnitude;
+    private Camera _camera;
+    private Vector3 _positionVelocity;
+    private Vector3 _currentOffset;
+    private Quaternion _targetRotation;
+    private float _targetZoom;
+    private float _distanceZoomBaseOffsetMagnitude;
 
     public Transform Target
     {
@@ -106,14 +107,6 @@ public class CameraController : MonoBehaviour
     public void ToggleViewType(bool snap = false)
     {
         SetViewType(_viewType == CameraViewType.SideView ? CameraViewType.Isometric : CameraViewType.SideView, snap);
-    }
-
-    public void SetBounds(float minX, float maxX, float minY, float maxY)
-    {
-        _minX = Mathf.Min(minX, maxX);
-        _maxX = Mathf.Max(minX, maxX);
-        _minY = Mathf.Min(minY, maxY);
-        _maxY = Mathf.Max(minY, maxY);
     }
 
     public void SetZoom(float zoomValue, bool snap = false)
@@ -160,8 +153,8 @@ public class CameraController : MonoBehaviour
     Vector3 GetDesiredPosition()
     {
         Vector3 baseDesired = _target.position + _currentOffset;
-        float clampedX = Mathf.Clamp(baseDesired.x, Mathf.Min(_minX, _maxX), Mathf.Max(_minX, _maxX));
-        float clampedY = Mathf.Clamp(baseDesired.y, Mathf.Min(_minY, _maxY), Mathf.Max(_minY, _maxY));
+        float clampedX = Mathf.Clamp(baseDesired.x, Mathf.Min(Limits.Min.x, Limits.Max.x), Mathf.Max(Limits.Min.x, Limits.Max.x));
+        float clampedY = Mathf.Clamp(baseDesired.y, Mathf.Min(Limits.Min.y, Limits.Max.y), Mathf.Max(Limits.Min.y, Limits.Max.y));
         return new Vector3(clampedX, clampedY, baseDesired.z);
     }
 

@@ -2,8 +2,15 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Orb : MonoBehaviour
+public class Orb : MonoBehaviour, ILevelBounds
 {
+#region ILevelBounds
+    public Limits Limits { get; private set; }
+    public void SetLimits(Limits limits)
+    {
+        Limits = limits;
+    }
+#endregion
     public static event Action OnOrbitEnter, OnOrbitExit, OnSpawn, OnDespawn;
 
     [SerializeField] PlayerData _playerData;
@@ -87,7 +94,7 @@ public class Orb : MonoBehaviour
     void LateUpdate()
     {
         _screenPosition = Camera.main.WorldToViewportPoint(transform.position);
-        if (!_isInScreen) gameObject.SetActive(false);
+        if (!Limits.IsInside(transform.position)) gameObject.SetActive(false);
 
         if (_isAiming)
         {
