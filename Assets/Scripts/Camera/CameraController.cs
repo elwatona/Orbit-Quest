@@ -5,11 +5,13 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour, ILevelBounds
 {
+    [SerializeField] FullScreenShaderController _fullScreenShaderController;
 #region ILevelBounds
     public Limits Limits { get; private set; }
     public void SetLimits(Limits limits)
     {
         Limits = limits;
+        _fullScreenShaderController.SetLimits(limits);
     }
 #endregion
     public enum CameraViewType
@@ -69,20 +71,17 @@ public class CameraController : MonoBehaviour, ILevelBounds
     private float _targetZoom;
     private float _distanceZoomBaseOffsetMagnitude;
 
-    public Transform Target
-    {
-        get => _target;
-        set => _target = value;
-    }
-
     public CameraViewType ViewType => _viewType;
 
     void Awake()
     {
         _camera = GetComponent<Camera>();
-        ApplyViewSettings(_viewType, snap: true);
         _targetZoom = GetCurrentZoom();
         _distanceZoomBaseOffsetMagnitude = Mathf.Max(0.001f, _currentOffset.magnitude);
+    }
+    void Start()
+    {
+        ApplyViewSettings(_viewType, snap: true);
     }
 
     void Update()
@@ -93,6 +92,7 @@ public class CameraController : MonoBehaviour, ILevelBounds
         UpdateFollowPosition();
         UpdateRotation();
         UpdateZoom();
+        _fullScreenShaderController.Update();
     }
 
     public void SetViewType(CameraViewType viewType, bool snap = false)

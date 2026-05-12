@@ -20,4 +20,9 @@ public class CameraInputController : MonoBehaviour
         if(context.control.device is Mouse) _cameraController.AddZoomDelta(context.ReadValue<float>() * _mouseWheelZoomStep);
         else _cameraController.AddZoomDelta(context.ReadValue<float>());
     }
+    public void SwitchCameraType(InputAction.CallbackContext context)
+    {
+        if (!context.started) return;
+        _cameraController.ToggleViewType();
+    }
 }
