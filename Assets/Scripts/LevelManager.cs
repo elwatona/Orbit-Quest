@@ -19,5 +19,7 @@ public class LevelManager : MonoBehaviour
         {
             levelBound.SetLimits(_limits);
         }
+        Shader.SetGlobalVector("_Limits_Min", _limits.Min);
+        Shader.SetGlobalVector("_Limits_Max", _limits.Max);
     }
 }
