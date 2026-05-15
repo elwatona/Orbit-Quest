@@ -26,11 +26,8 @@ public class EditorInputController : MonoBehaviour
 
         AstroType type = GetAstroTypeFromBinding(context);
         if (type == AstroType.None) return;
-
-        Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        cursorWorldPosition.z = 0f;
-
-        _astroFactory.Create(type, cursorWorldPosition);
+        
+        _astroFactory.Create(type, _playerData.CursorWorld);
     }
     /// <summary>Called by the Developer Mode input action (F1). Toggles developer mode and notifies DeveloperToolsUI (and any other consumers) with the new value.</summary>
     public void DeveloperMode(InputAction.CallbackContext context)

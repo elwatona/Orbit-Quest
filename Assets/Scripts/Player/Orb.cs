@@ -98,10 +98,7 @@ public class Orb : MonoBehaviour, ILevelBounds
 
         if (_isAiming)
         {
-            Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            cursorWorldPosition.z = 0;
-
-            _lineRendererController.UpdateTrajectory(cursorWorldPosition);
+            _lineRendererController.UpdateTrajectory(_playerData.CursorWorld);
         }
 
         _lineRendererController.UpdateDirection(transform.position, _rb.linearVelocity);

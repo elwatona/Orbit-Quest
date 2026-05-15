@@ -11,11 +11,13 @@ public class PlayerData : ScriptableObject
     [SerializeField] InertiaResource _inertiaResource;
     [SerializeField] bool _isInEditMode = false;
     [SerializeField] PlayerStatus _status = PlayerStatus.Alive;
+    [SerializeField] Vector3 _cursorWorld;
     public ImpulseResource ImpulseResource => _impulseResource;
     public ThrusterResource ThrusterResource => _thrusterResource;
     public InertiaResource InertiaResource => _inertiaResource;
     public bool IsInEditMode => _isInEditMode;
     public bool CanReadInputs => !_isInEditMode && _status == PlayerStatus.Alive;
+    public Vector3 CursorWorld => _cursorWorld;
     public OrbiterSettings ToOrbiterSettings()
     {
         return new OrbiterSettings {
@@ -79,6 +81,10 @@ public class PlayerData : ScriptableObject
     public void SetPlayerStatus(PlayerStatus status)
     {
         _status = status;
+    }
+    public void UpdateCursorWorld(Vector3 cursorWorld)
+    {
+        _cursorWorld = cursorWorld;
     }
 }
 public enum PlayerStatus

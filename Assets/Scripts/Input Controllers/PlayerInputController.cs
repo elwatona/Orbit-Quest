@@ -21,19 +21,29 @@ public class PlayerInputController : MonoBehaviour
 
     void Update()
     {
+        UpdateCursorWorld();
+        
         if (!_playerData.CanReadInputs) return;
 
-        Vector2 screenPos = Mouse.current.position.ReadValue();
-        Vector3 cursorWorld = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
-        cursorWorld.z = 0f;
         Vector2 orbPos = _orbGameObject.transform.position;
-        Vector2 direction = new Vector2(cursorWorld.x - orbPos.x, cursorWorld.y - orbPos.y);
+        Vector2 direction = new Vector2(_playerData.CursorWorld.x - orbPos.x, _playerData.CursorWorld.y - orbPos.y);
+
         if (direction.sqrMagnitude > 0.0001f)
         {
             _orb.SetAimDirection(direction.normalized);
         }
     }
-
+    void UpdateCursorWorld()
+    {
+        Vector2 screenPos = Mouse.current.position.ReadValue();
+        Camera cam = Camera.main;
+        Ray ray = cam.ScreenPointToRay(screenPos);
+        float t = 0f;
+        if (Mathf.Abs(ray.direction.z) > 0.0001f)
+            t = -ray.origin.z / ray.direction.z; // z=0
+        Vector3 cursorWorld = ray.origin + ray.direction * t;
+        _playerData.UpdateCursorWorld(cursorWorld);
+    }
     void CacheReferences()
     {
         if (!_orbGameObject) _orbGameObject = transform.Find("Orb").gameObject;
