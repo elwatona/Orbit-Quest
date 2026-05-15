@@ -8,21 +8,21 @@ public class CameraInputController : MonoBehaviour
     [Header("Zoom Input")]
     [SerializeField] float _mouseWheelZoomStep = 1f;
 
-    void Awake()
-    {
-        if (!_cameraController) _cameraController = Camera.main.GetComponent<CameraController>();
-    }
-
     public void ChangeCameraZoom(InputAction.CallbackContext context)
     {
         if (!context.started) return;
         
-        if(context.control.device is Mouse) _cameraController.AddZoomDelta(context.ReadValue<float>() * _mouseWheelZoomStep);
-        else _cameraController.AddZoomDelta(context.ReadValue<float>());
+        if(context.control.device is Mouse) _cameraController.Zoom(context.ReadValue<float>() * _mouseWheelZoomStep);
+        else _cameraController.Zoom(context.ReadValue<float>());
     }
     public void SwitchCameraType(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        _cameraController.ToggleViewType();
+        _cameraController.ToggleCameraType();
+    }
+    public void RotateCamera(InputAction.CallbackContext context)
+    {
+        if (!context.started) return;
+        _cameraController.RotateCenital(context.ReadValue<float>());
     }
 }
