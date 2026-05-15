@@ -40,6 +40,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sun
       objectReference: {fileID: 0}
+    - target: {fileID: 4827974399144659465, guid: d092699f29c09ba4aaba3ec6a1f2c650, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 6956954191383054021, guid: d092699f29c09ba4aaba3ec6a1f2c650, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -81,8 +85,16 @@ PrefabInstance:
       value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 7783997113177056791, guid: d092699f29c09ba4aaba3ec6a1f2c650, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7783997113177056791, guid: d092699f29c09ba4aaba3ec6a1f2c650, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8186589043628032196, guid: d092699f29c09ba4aaba3ec6a1f2c650, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
