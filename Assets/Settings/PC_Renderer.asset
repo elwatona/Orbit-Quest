@@ -84,23 +84,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b3d386ba5cd94485973aee1479b272e, type: 3}
-  m_Name: Astros
+  m_Name: Over Grid
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    passTag: Astros
-    Event: 300
+    passTag: Over Grid
+    Event: 500
     filterSettings:
       RenderQueueType: 0
       LayerMask:
         serializedVersion: 2
-        m_Bits: 448
+        m_Bits: 512
       PassNames: []
     overrideMaterial: {fileID: 2100000, guid: 943f109ac2bfe1848bc5c21873c1e15f, type: 2}
     overrideMaterialPassIndex: 0
-    overrideShader: {fileID: 0}
+    overrideShader: {fileID: -6465566751694194690, guid: 1117c702cf3b1c642a421c14c5d768bb, type: 3}
     overrideShaderPassIndex: 0
-    overrideMode: 0
+    overrideMode: 2
     overrideDepthState: 1
     depthCompareFunction: 0
     enableWrite: 0

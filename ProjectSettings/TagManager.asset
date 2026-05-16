@@ -8,13 +8,13 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - Planet
   - Asteroid
   - Sun
-  - 
+  - Orbit
   - 
   - 
   - 

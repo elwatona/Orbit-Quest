@@ -4,6 +4,10 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class GridController : MonoBehaviour
 {
+    const int FrustumCornerCount = 8;
+    static readonly int[] FrustumNearLoop = { 0, 1, 3, 2 };
+    static readonly int[] FrustumFarLoop = { 4, 5, 7, 6 };
+
     [Header("References")]
     [SerializeField] Camera _camera;
     [SerializeField] PlayerData _playerData;
@@ -20,6 +24,7 @@ public class GridController : MonoBehaviour
     private Plane _gridPlane;
     private Renderer _renderer;
     private GridShaderController _shaderController;
+    private readonly Vector3[] _frustumCorners = new Vector3[FrustumCornerCount];
     void Awake()
     {
         _transform = transform;
@@ -46,7 +51,7 @@ public class GridController : MonoBehaviour
 
     void HandleEditModeToggled()
     {
-        _shaderController.UpdateOpacity(_playerData.IsInEditMode ? 1f : 0.026f);
+        _shaderController.UpdateOpacity(_playerData.IsInEditMode ? 1f : 0.125f);
     }
 
     void LateUpdate()
@@ -69,23 +74,18 @@ public class GridController : MonoBehaviour
         Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
         bool anyHit = false;
 
-        for (int i = 0; i < 4; i++)
-        {
-            Vector3 viewport = new Vector3((i & 1) == 0 ? 0f : 1f, (i & 2) == 0 ? 0f : 1f, 0f);
-            Ray ray = _camera.ViewportPointToRay(viewport);
+        FillFrustumWorldCorners(_camera, _frustumCorners);
 
-            if (!_gridPlane.Raycast(ray, out float distance) || distance < 0f)
+        // Frustum ∩ plane: every polygon vertex lies on a frustum edge. Corner rays alone
+        // miss edge hits when the near/far clip rectangles cut the plane (common when
+        // the camera is close and tilted relative to the grid).
+        for (int e = 0; e < 12; e++)
+        {
+            GetFrustumEdge(_frustumCorners, e, out Vector3 a, out Vector3 b);
+            if (!TrySegmentPlaneIntersection(a, b, _gridPlane, out Vector3 worldHit))
                 continue;
 
-            Vector3 worldHit = ray.GetPoint(distance);
-            Vector3 offset = worldHit - _planeOrigin;
-            float u = Vector3.Dot(offset, _planeRight);
-            float v = Vector3.Dot(offset, _planeUp);
-
-            if (u < min.x) min.x = u;
-            if (v < min.y) min.y = v;
-            if (u > max.x) max.x = u;
-            if (v > max.y) max.y = v;
+            ExpandPlaneBounds(worldHit, ref min, ref max);
             anyHit = true;
         }
 
@@ -111,5 +111,77 @@ public class GridController : MonoBehaviour
         Vector3 worldCenter = _planeOrigin + _planeRight * center.x + _planeUp * center.y;
         _transform.position = worldCenter;
         _transform.localScale = new Vector3(size.x, size.y, 1f);
+    }
+
+    static void FillFrustumWorldCorners(Camera camera, Vector3[] corners)
+    {
+        float nearZ = camera.nearClipPlane;
+        float farZ = camera.farClipPlane;
+        for (int i = 0; i < 4; i++)
+        {
+            float sx = (i & 1) == 0 ? 0f : 1f;
+            float sy = (i & 2) == 0 ? 0f : 1f;
+            corners[i] = camera.ViewportToWorldPoint(new Vector3(sx, sy, nearZ));
+            corners[i + 4] = camera.ViewportToWorldPoint(new Vector3(sx, sy, farZ));
+        }
+    }
+
+    static void GetFrustumEdge(Vector3[] corners, int edgeIndex, out Vector3 a, out Vector3 b)
+    {
+        if (edgeIndex < 4)
+        {
+            int i = FrustumNearLoop[edgeIndex];
+            int j = FrustumNearLoop[(edgeIndex + 1) & 3];
+            a = corners[i];
+            b = corners[j];
+            return;
+        }
+
+        edgeIndex -= 4;
+        if (edgeIndex < 4)
+        {
+            int i = FrustumFarLoop[edgeIndex];
+            int j = FrustumFarLoop[(edgeIndex + 1) & 3];
+            a = corners[i];
+            b = corners[j];
+            return;
+        }
+
+        edgeIndex -= 4;
+        a = corners[edgeIndex];
+        b = corners[edgeIndex + 4];
+    }
+
+    static bool TrySegmentPlaneIntersection(Vector3 segmentStart, Vector3 segmentEnd, Plane plane, out Vector3 hit)
+    {
+        hit = default;
+        Vector3 dir = segmentEnd - segmentStart;
+        float length = dir.magnitude;
+        if (length < 1e-8f)
+            return false;
+
+        Vector3 unitDir = dir / length;
+        Ray ray = new Ray(segmentStart, unitDir);
+        if (!plane.Raycast(ray, out float distance))
+            return false;
+
+        const float epsilon = 1e-4f;
+        if (distance < -epsilon || distance > length + epsilon)
+            return false;
+
+        hit = ray.GetPoint(distance);
+        return true;
+    }
+
+    void ExpandPlaneBounds(Vector3 worldHit, ref Vector2 min, ref Vector2 max)
+    {
+        Vector3 offset = worldHit - _planeOrigin;
+        float u = Vector3.Dot(offset, _planeRight);
+        float v = Vector3.Dot(offset, _planeUp);
+
+        if (u < min.x) min.x = u;
+        if (v < min.y) min.y = v;
+        if (u > max.x) max.x = u;
+        if (v > max.y) max.y = v;
     }
 }

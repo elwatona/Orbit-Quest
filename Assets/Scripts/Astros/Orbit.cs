@@ -4,13 +4,12 @@ using UnityEngine;
 public class Orbit : MonoBehaviour, IOrbitable
 {
     [Header("Orbit Settings")]
-    [SerializeField] DangerZone _dangerZone;
+    [SerializeField] OrbitRenderer.Data _orbitRenderer;
     private OrbitData _runtimeData;
 
     [Header("References")]
-    [SerializeField] Renderer _orbitRenderer;
     [SerializeField] Transform _transform;
-    private OrbitShader _shaderController;
+    private OrbitRenderer _shaderController;
     private Vector3 _lastPosition;
 
     public OrbitData Data => _runtimeData;
@@ -23,19 +22,15 @@ public class Orbit : MonoBehaviour, IOrbitable
     {
         _lastPosition = _transform.position;
     }
-    void Start()
-    {
-        _shaderController.Apply();
-    }
     void OnValidate()
     {
         CacheReferences();
-        _shaderController.SetData(_dangerZone);
     }
     void Update()
     {
         Debug.DrawRay(_transform.position, Vector3.up, Color.green, 1f);
         Debug.DrawRay(_transform.parent.position, Vector3.right, Color.blue, 1f);
+        _shaderController.UpdateCameraLine();
     }
     void LateUpdate()
     {
@@ -44,18 +39,16 @@ public class Orbit : MonoBehaviour, IOrbitable
     }
     void CacheReferences()
     {
-        if (!_transform) _transform = transform;       
-        if (!_orbitRenderer) _orbitRenderer = _transform.GetComponent<Renderer>();
-        if (_shaderController == null) _shaderController = new OrbitShader(_orbitRenderer, _dangerZone);
+        if (!_transform) _transform = transform;
+        if (_shaderController == null) _shaderController = new OrbitRenderer(_orbitRenderer, _transform, Camera.main.transform);
     }
     public void EnterOrbit()
     {
-        _shaderController.SetTetha(0,0);
-        _shaderController.SetPhi(0,0);
+
     }
     public void ExitOrbit()
     {
-        _shaderController.SetData(_dangerZone);
+        
     }
     public void SetData(OrbitData data)
     {
@@ -63,20 +56,4 @@ public class Orbit : MonoBehaviour, IOrbitable
         _runtimeData.transform = _transform;
     }
 
-}
-
-[Serializable]
-public struct DangerZone
-{
-    [Range(0, Mathf.PI * 2)]
-    public float thetaMin;
-
-    [Range(0, Mathf.PI * 2)]
-    public float thetaMax;
-
-    [Range(0, Mathf.PI)]
-    public float phiMin;
-
-    [Range(0, Mathf.PI)]
-    public float phiMax;
 }

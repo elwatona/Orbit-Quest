@@ -1,50 +1,45 @@
 using UnityEngine;
-public class OrbitShader
+using System;
+public class OrbitRenderer
 {
-    readonly Renderer _renderer;
-    readonly MaterialPropertyBlock _propertyBlock;
-    private DangerZone _data;
 
-#region ShaderIDs
-    readonly int _thetaMinID = Shader.PropertyToID("_ThetaMin");
-    readonly int _thetaMaxID = Shader.PropertyToID("_ThetaMax"); 
-    readonly int _phiMinID = Shader.PropertyToID("_PhiMin");
-    readonly int _phiMaxID = Shader.PropertyToID("_PhiMax");
-#endregion
-
-    public OrbitShader(Renderer renderer, DangerZone data)
+    [Serializable]
+    public struct Data
     {
-        _renderer = renderer;
-        _data = data;
-        _propertyBlock = new MaterialPropertyBlock();
-        Apply();
+        public LineRenderer zAxisRenderer;
+        public LineRenderer cameraPerpendicularRenderer;
     }
-    public void Apply()
+    private Data _data;
+    readonly Transform _transform;
+    readonly Transform _camera;
+    public OrbitRenderer(Data data, Transform transform, Transform camera)
     {
-        _renderer?.GetPropertyBlock(_propertyBlock);
-
-        _propertyBlock.SetFloat(_thetaMinID, _data.thetaMin);
-        _propertyBlock.SetFloat(_thetaMaxID, _data.thetaMax);
-        _propertyBlock.SetFloat(_phiMinID, _data.phiMin);
-        _propertyBlock.SetFloat(_phiMaxID, _data.phiMax);
-
-        _renderer?.SetPropertyBlock(_propertyBlock);
+        _transform = transform;
+        _camera = camera;
+        SetData(data);
     }
-    public void SetData(DangerZone data)
+    public void SetData(Data data)
     {
         _data = data;
-        Apply();
+        MountRenderer(_data.zAxisRenderer, _transform.position, _transform.forward);
+        MountRenderer(_data.cameraPerpendicularRenderer, _transform.position, _camera.forward); 
     }
-    public void SetTetha(float min, float max)
+    public void UpdateCameraLine()
     {
-        _data.thetaMin = min;
-        _data.thetaMax = max;
-        Apply();
+        MountRenderer(_data.cameraPerpendicularRenderer, _transform.position, _camera.forward);
     }
-    public void SetPhi(float min, float max)
+    private void MountRenderer(LineRenderer lineRenderer, Vector3 position, Vector3 direction)
     {
-        _data.phiMin = min;
-        _data.phiMax = max;
-        Apply();
+        int segments = 64;
+        float radius = _transform.lossyScale.x * 0.5f;
+        lineRenderer.positionCount = segments + 1;
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = (float)i / segments * Mathf.PI * 2f;
+            Vector3 localPos = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
+            Quaternion q = Quaternion.FromToRotation(Vector3.forward, direction.normalized);
+            Vector3 rotated = q * localPos;
+            lineRenderer.SetPosition(i, position + rotated);
+        }
     }
 }
