@@ -24,8 +24,9 @@ public class OrbitRenderer
         MountRenderer(_data.zAxisRenderer, _transform.position, _transform.forward);
         MountRenderer(_data.cameraPerpendicularRenderer, _transform.position, _camera.forward); 
     }
-    public void UpdateCameraLine()
+    public void Update()
     {
+        MountRenderer(_data.zAxisRenderer, _transform.position, _transform.forward);
         MountRenderer(_data.cameraPerpendicularRenderer, _transform.position, _camera.forward);
     }
     private void MountRenderer(LineRenderer lineRenderer, Vector3 position, Vector3 direction)

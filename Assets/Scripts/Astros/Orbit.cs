@@ -30,7 +30,7 @@ public class Orbit : MonoBehaviour, IOrbitable
     {
         Debug.DrawRay(_transform.position, Vector3.up, Color.green, 1f);
         Debug.DrawRay(_transform.parent.position, Vector3.right, Color.blue, 1f);
-        _shaderController.UpdateCameraLine();
+        _shaderController.Update();
     }
     void LateUpdate()
     {
