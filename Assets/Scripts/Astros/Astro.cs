@@ -127,6 +127,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
         if(!_playerData.IsInEditMode || eventData.button != PointerEventData.InputButton.Left) return;
 
         Vector3 desiredPosition = _playerData.CursorWorld;
+        desiredPosition.y = 0;
         _transform.position = desiredPosition;
 
         OnEditableDragged?.Invoke();
