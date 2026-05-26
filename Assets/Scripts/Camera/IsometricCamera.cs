@@ -7,19 +7,19 @@ public class IsometricCamera : CameraController
     public IsometricCamera(CinemachineCamera camera) : base(camera)
     {
         _zoomLimits = new Vector2(10, 20);
+        _zoom = new Values(10);
+        _rotation = new Values(10);
     }
 
     public override void Zoom(float delta)
     {
-        _zoomStep = Mathf.Clamp(_zoomStep += delta, 0, _zoomMaxStep);
-        _zoomLerp = _zoomStep / _zoomMaxStep;
+        _zoom.Set(Mathf.Clamp(_zoom.value + delta, 0, _zoom.maxStep));
     
-        _camera.Lens.OrthographicSize = Mathf.Lerp(_camera.Lens.OrthographicSize, _camera.Lens.OrthographicSize + delta, _zoomLerp);
+        _camera.Lens.OrthographicSize = Mathf.Lerp(_camera.Lens.OrthographicSize, _camera.Lens.OrthographicSize + delta * 5f, _zoom.lerp);
         _camera.Lens.OrthographicSize = Mathf.Clamp(_camera.Lens.OrthographicSize, _zoomLimits.x, _zoomLimits.y);
     }
     public override void Rotate(float delta)
     {
-        _rotateStep = Mathf.Clamp(_rotateStep += delta, 0, _rotateMaxStep);
-        _rotateLerp = _rotateStep / _rotateMaxStep;
+        _cameraTransform.RotateAround(_cameraTransform.position, Vector3.up, delta);
     }
 }

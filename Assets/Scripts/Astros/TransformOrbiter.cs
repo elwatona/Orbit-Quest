@@ -91,7 +91,10 @@ public class TransformOrbiter : MonoBehaviour
         if (UsePathMode())
         {
             Vector3 center = GetBarycenter();
-            float distanceToCenter = Vector2.Distance(transform.position, center);
+            float distanceToCenter = Vector2.Distance(
+                new Vector2(transform.position.x, transform.position.z),
+                new Vector2(center.x, center.z)
+            );
             float systemRadius = GetSystemRadius(center);
             float minSafeMargin = GetMinimumSafeMargin();
             _radius = Mathf.Max(0f, distanceToCenter - systemRadius);
@@ -100,7 +103,10 @@ public class TransformOrbiter : MonoBehaviour
         else
         {
             Vector3 focus = GetFocus();
-            float distance = Vector2.Distance(transform.position, focus);
+            float distance = Vector2.Distance(
+                new Vector2(transform.position.x, transform.position.z),
+                new Vector2(focus.x, focus.z)
+            );
             float minSafeMargin = GetMinimumSafeMargin();
             float e = Mathf.Clamp(_eccentricity, 0.01f, 0.99f);
             float minSemiMajorAxis = minSafeMargin / (1f - e);
@@ -114,11 +120,7 @@ public class TransformOrbiter : MonoBehaviour
     void Update()
     {
         if (!HasValidTargets()) return;
-        // if (_orbitStateDirty)
-        // {
             SyncToTargets();
-        //     _orbitStateDirty = false;
-        // }
         if (UsePathMode())
             ApplyPathOrbit();
         else
@@ -183,19 +185,19 @@ public class TransformOrbiter : MonoBehaviour
         float r = RadiusAtTrueAnomaly(effectiveRadius, _eccentricity, nu);
 
         float x = r * Mathf.Cos(nu);
-        float y = r * Mathf.Sin(nu);
-        Vector3 localPos = new Vector3(x, y, 0f);
+        float z = r * Mathf.Sin(nu);
+        Vector3 localPos = new Vector3(x, 0f, z);
 
         if (_targets.Length > 1 && _targets[0] != null && _targets[1] != null)
         {
             Vector3 dir = _targets[1].position - _targets[0].position;
-            float orientation = Mathf.Atan2(dir.y, dir.x);
+            float orientation = Mathf.Atan2(dir.z, dir.x);
             float cos = Mathf.Cos(orientation);
             float sin = Mathf.Sin(orientation);
             localPos = new Vector3(
-                localPos.x * cos - localPos.y * sin,
-                localPos.x * sin + localPos.y * cos,
-                0f
+                localPos.x * cos - localPos.z * sin,
+                0f,
+                localPos.x * sin + localPos.z * cos
             );
         }
 
@@ -221,7 +223,10 @@ public class TransformOrbiter : MonoBehaviour
         for (int i = 0; i < _targets.Length; i++)
         {
             if (_targets[i] == null) continue;
-            float d = Vector2.Distance(center, _targets[i].position);
+            float d = Vector2.Distance(
+                new Vector2(center.x, center.z),
+                new Vector2(_targets[i].position.x, _targets[i].position.z)
+            );
             if (d > maxDist) maxDist = d;
         }
         return maxDist;
@@ -243,7 +248,7 @@ public class TransformOrbiter : MonoBehaviour
         var astro = root.GetComponent<Astro>();
         if (astro != null) return astro.BodyRadius;
         Vector3 s = body.lossyScale;
-        return 0.5f * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.y));
+        return 0.5f * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.z));
     }
 
     float GetMinimumSafeMargin()
@@ -283,7 +288,7 @@ public class TransformOrbiter : MonoBehaviour
             {
                 if (_targets[i] == null) continue;
                 Vector3 d = _targets[i].position - center;
-                float r = d.x * cos + d.y * sin;
+                float r = d.x * cos + d.z * sin;
                 if (r > maxR) maxR = r;
             }
             rawMaxR[a] = maxR;
@@ -367,7 +372,7 @@ public class TransformOrbiter : MonoBehaviour
     {
         if (_pathPoints == null || _pathPoints.Count == 0 || _totalPathLength < 0.0001f) return;
         Vector3 center = GetBarycenter();
-        Vector2 local = new Vector2(transform.position.x - center.x, transform.position.y - center.y);
+        Vector2 local = new Vector2(transform.position.x - center.x, transform.position.z - center.z);
         int n = _pathPoints.Count;
         int bestSeg = 0;
         float bestT = 0f;
@@ -398,7 +403,7 @@ public class TransformOrbiter : MonoBehaviour
         float paramRate = _totalPathLength > 0.0001f ? _speed / _totalPathLength : 0f;
         _pathParameter += paramRate * Time.deltaTime;
         Vector2 localPos = GetPositionOnPath(_pathParameter);
-        transform.position = GetBarycenter() + new Vector3(localPos.x, localPos.y, 0f);
+        transform.position = GetBarycenter() + new Vector3(localPos.x, 0f, localPos.y);
     }
 
     Vector3 GetFocus()
@@ -435,21 +440,21 @@ public class TransformOrbiter : MonoBehaviour
         if (_targets.Length > 1 && _targets[0] != null && _targets[1] != null)
         {
             Vector3 dir = _targets[1].position - _targets[0].position;
-            float orientation = Mathf.Atan2(dir.y, dir.x);
+            float orientation = Mathf.Atan2(dir.z, dir.x);
             float cos = Mathf.Cos(-orientation);
             float sin = Mathf.Sin(-orientation);
             offset = new Vector3(
-                offset.x * cos - offset.y * sin,
-                offset.x * sin + offset.y * cos,
-                0f
+                offset.x * cos - offset.z * sin,
+                0f,
+                offset.x * sin + offset.z * cos
             );
         }
 
-        float r = new Vector2(offset.x, offset.y).magnitude;
+        float r = new Vector2(offset.x, offset.z).magnitude;
         if (r < 0.0001f)
             return;
 
-        float nu = Mathf.Atan2(offset.y, offset.x);
+        float nu = Mathf.Atan2(offset.z, offset.x);
         float e = Mathf.Clamp(_eccentricity, 0.01f, 0.99f);
         float oneMinE2 = 1f - e * e;
         float cosNu = Mathf.Cos(nu);

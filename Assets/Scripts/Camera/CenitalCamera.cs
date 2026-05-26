@@ -7,18 +7,20 @@ public class CenitalCamera : CameraController
     public CenitalCamera(CinemachineCamera camera) : base(camera)
     {
         _follow = _cameraTransform.GetComponent<CinemachineOrbitalFollow>();
+        _zoom = new Values(10);
+        _rotation = new Values(10);
     }
     public override void Zoom(float delta)
     {
-        _zoomStep = Mathf.Clamp(_zoomStep += delta, 0, _zoomMaxStep);
-        _zoomLerp = _zoomStep / _zoomMaxStep;
+        _zoom.Set(Mathf.Clamp(_zoom.value + delta, 0, _zoom.maxStep));
     
-        _follow.VerticalAxis.Value = Mathf.Lerp(_follow.VerticalAxis.Range.x, _follow.VerticalAxis.Range.y, _zoomLerp);
-        _follow.RadialAxis.Value = Mathf.Lerp(_follow.RadialAxis.Range.x, _follow.RadialAxis.Range.y, _zoomLerp);
+        _follow.VerticalAxis.Value = Mathf.Lerp(_follow.VerticalAxis.Range.x, _follow.VerticalAxis.Range.y, _zoom.lerp);
     }
     public override void Rotate(float delta)
     {
-        _rotateStep = Mathf.Clamp(_rotateStep += delta, 0, _rotateMaxStep);
-        _rotateLerp = _rotateStep / _rotateMaxStep;
+        Debug.Log("Rotate: " + delta);
+        _rotation.Set(delta);
+
+        _follow.HorizontalAxis.Value = Mathf.Lerp(_follow.HorizontalAxis.Range.x, _follow.HorizontalAxis.Range.y, _rotation.lerp);
     }
 }

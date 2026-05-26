@@ -12,7 +12,7 @@ public class PlayerInputController : MonoBehaviour
     [SerializeField] Orb _orb;
     [SerializeField] PlayerData _playerData;
 
-    Vector2 _lastMoveValue;
+    Vector3 _lastMoveValue;
 
     void Awake()
     {
@@ -25,8 +25,8 @@ public class PlayerInputController : MonoBehaviour
         
         if (!_playerData.CanReadInputs) return;
 
-        Vector2 orbPos = _orbGameObject.transform.position;
-        Vector2 direction = new Vector2(_playerData.CursorWorld.x - orbPos.x, _playerData.CursorWorld.y - orbPos.y);
+        Vector3 orbPos = _orbGameObject.transform.position;
+        Vector2 direction = new Vector2(_playerData.CursorWorld.x - orbPos.x, _playerData.CursorWorld.z - orbPos.z);
 
         if (direction.sqrMagnitude > 0.0001f)
         {
@@ -39,8 +39,8 @@ public class PlayerInputController : MonoBehaviour
         Camera cam = Camera.main;
         Ray ray = cam.ScreenPointToRay(screenPos);
         float t = 0f;
-        if (Mathf.Abs(ray.direction.z) > 0.0001f)
-            t = -ray.origin.z / ray.direction.z; // z=0
+        if (Mathf.Abs(ray.direction.y) > 0.0001f)
+            t = -ray.origin.y / ray.direction.y; // y=0
         Vector3 cursorWorld = ray.origin + ray.direction * t;
         _playerData.UpdateCursorWorld(cursorWorld);
     }
@@ -77,7 +77,15 @@ public class PlayerInputController : MonoBehaviour
     /// <summary>Called by the Move input action. Passes the movement vector to the orb for thrust (used when Apply Thrust is not held).</summary>
     public void Move(InputAction.CallbackContext context)
     {
-        _lastMoveValue = context.ReadValue<Vector2>();
+        Vector2 moveValue = context.ReadValue<Vector2>();
+
+        Vector3 camForward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
+        Vector3 camRight = Vector3.ProjectOnPlane(Camera.main.transform.right, Vector3.up).normalized;
+
+        _lastMoveValue = camRight * moveValue.x + camForward * moveValue.y;
+
+        _lastMoveValue = Vector3.ClampMagnitude(_lastMoveValue, 1f);
+
         if (!_playerData.CanReadInputs) return;
         _orb.SetThrustInput(_lastMoveValue);
     }
@@ -89,7 +97,7 @@ public class PlayerInputController : MonoBehaviour
             _orbGameObject.SetActive(false);
         if (!_orbGameObject.activeSelf)
         {
-            _lastMoveValue = Vector2.zero;
+            _lastMoveValue = Vector3.zero;
             _orbGameObject.transform.position = _spawnPoint.position;
             _orbGameObject.SetActive(true);
         }

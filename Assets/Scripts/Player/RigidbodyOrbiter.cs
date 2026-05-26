@@ -40,7 +40,7 @@ public class RigidbodyOrbiter
     // ---------------------------------------------------------
 
     /// <param name="thrustInput">Current frame thrust direction. Inertia stabilizer only applies when this is released (zero).</param>
-    public void FixedUpdate(Vector2 thrustInput)
+    public void FixedUpdate(Vector3 thrustInput)
     {
         if (_graceTimer > 0f)
         {
@@ -60,11 +60,11 @@ public class RigidbodyOrbiter
     }
 
     /// <summary>Applies thrust in the given 2D direction using ForceMode.Acceleration (mass-independent). When inertia stabilizer is ON, does not add force in thrust direction if velocity in that direction already exceeds stabilizerMaxThrustSpeed.</summary>
-    public void ApplyThrust(Vector2 direction)
+    public void ApplyThrust(Vector3 direction)
     {
         if (direction.sqrMagnitude < 0.0001f)
             return;
-        Vector3 worldDirection = new Vector3(direction.x, direction.y, 0f).normalized;
+        Vector3 worldDirection = direction.normalized;
         float magnitude = _settings.ThrusterResourceSettings.ThrustForce;
         if (magnitude < 0.0001f)
             return;

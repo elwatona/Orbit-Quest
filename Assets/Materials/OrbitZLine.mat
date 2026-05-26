@@ -54,6 +54,6 @@ Material:
     - _HasPrecut: 0
     - _Lenght: 0
     m_Colors:
-    - _Color: {r: 3.9999998, g: 3.9999998, b: 3.9999998, a: 1}
+    - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

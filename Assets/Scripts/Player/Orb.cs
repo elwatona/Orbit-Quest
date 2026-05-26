@@ -19,7 +19,7 @@ public class Orb : MonoBehaviour, ILevelBounds
     private RigidbodyOrbiter _orbiterController;
     private LineRendererController _lineRendererController;
     private Rigidbody _rb;
-    private Vector2 _thrustInput;
+    private Vector3 _thrustInput;
     private Vector2 _aimDirection;
     private Vector3 _screenPosition;
     private bool _isAiming;
@@ -51,7 +51,7 @@ public class Orb : MonoBehaviour, ILevelBounds
 
     void OnEnable()
     {
-        _thrustInput = Vector2.zero;
+        _thrustInput = Vector3.zero;
         _aimDirection = Vector2.zero;
         _orbiterController?.OnEnable();
         _playerData.ImpulseResource?.ResetForSpawn();
@@ -73,7 +73,7 @@ public class Orb : MonoBehaviour, ILevelBounds
     }
 
     /// <summary>Called by the Move input action (e.g. from PlayerController). Passes the current movement direction.</summary>
-    public void SetThrustInput(Vector2 value)
+    public void SetThrustInput(Vector3 value)
     {
         _thrustInput = value;
     }
@@ -85,7 +85,7 @@ public class Orb : MonoBehaviour, ILevelBounds
     }
 
     /// <summary>Applies a single thrust impulse in the given world-space direction. Called e.g. on right click.</summary>
-    public void ApplyThrustImpulse(Vector2 worldDirection)
+    public void ApplyThrustImpulse(Vector3 worldDirection)
     {
         if (worldDirection.sqrMagnitude < 0.0001f) return;
         _orbiterController.ApplyThrust(worldDirection);
@@ -105,8 +105,8 @@ public class Orb : MonoBehaviour, ILevelBounds
 
         if (_aimDirection.sqrMagnitude > 0.0001f)
         {
-            float angleDeg = -Mathf.Atan2(_aimDirection.x, _aimDirection.y) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0f, 0f, angleDeg);
+            float angleDeg = Mathf.Atan2(_aimDirection.x, _aimDirection.y) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, angleDeg, 0f);
         }
         _playerData.ThrusterResource.UpdateSpeed(_orbiterController.Speed);
     }
@@ -137,7 +137,7 @@ public class Orb : MonoBehaviour, ILevelBounds
 
     void OnDisable()
     {
-        _thrustInput = Vector2.zero;
+        _thrustInput = Vector3.zero;
         SetAiming(false);
         _orbiterController?.OnDisable();
         OnDespawn?.Invoke();

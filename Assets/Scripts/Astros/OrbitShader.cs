@@ -6,7 +6,7 @@ public class OrbitRenderer
     [Serializable]
     public struct Data
     {
-        public LineRenderer zAxisRenderer;
+        public LineRenderer yAxisRenderer;
         public LineRenderer cameraPerpendicularRenderer;
     }
     private Data _data;
@@ -21,12 +21,12 @@ public class OrbitRenderer
     public void SetData(Data data)
     {
         _data = data;
-        MountRenderer(_data.zAxisRenderer, _transform.position, _transform.forward);
+        MountRenderer(_data.yAxisRenderer, _transform.position, Vector3.up);
         MountRenderer(_data.cameraPerpendicularRenderer, _transform.position, _camera.forward); 
     }
     public void Update()
     {
-        MountRenderer(_data.zAxisRenderer, _transform.position, _transform.forward);
+        MountRenderer(_data.yAxisRenderer, _transform.position, Vector3.up);
         MountRenderer(_data.cameraPerpendicularRenderer, _transform.position, _camera.forward);
     }
     private void MountRenderer(LineRenderer lineRenderer, Vector3 position, Vector3 direction)

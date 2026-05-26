@@ -1,9 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using System;
 public class CameraInputController : MonoBehaviour
 {
-    [SerializeField] CameraManager _cameraManager;
+    public enum InputType
+    {
+        Zoom,
+        Rotate,
+        SwitchCameraType
+    }
+    public static event Action<InputType, float> OnCameraInput;
 
     [Header("Zoom Input")]
     [SerializeField] float _mouseWheelZoomStep = 1f;
@@ -12,17 +18,16 @@ public class CameraInputController : MonoBehaviour
     {
         if (!context.started) return;
         
-        if(context.control.device is Mouse) _cameraManager.Zoom(context.ReadValue<float>() * _mouseWheelZoomStep);
-        else _cameraManager.Zoom(context.ReadValue<float>());
+        if(context.control.device is Mouse) OnCameraInput?.Invoke(InputType.Zoom, context.ReadValue<float>() * _mouseWheelZoomStep);
+        else OnCameraInput?.Invoke(InputType.Zoom, context.ReadValue<float>());
     }
     public void SwitchCameraType(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        _cameraManager.ToggleCameraType();
+        OnCameraInput?.Invoke(InputType.SwitchCameraType, 0);
     }
     public void RotateCamera(InputAction.CallbackContext context)
     {
-        if (!context.started) return;
-        _cameraManager.Rotate(context.ReadValue<float>());
+        OnCameraInput?.Invoke(InputType.Rotate, context.ReadValue<float>());
     }
 }

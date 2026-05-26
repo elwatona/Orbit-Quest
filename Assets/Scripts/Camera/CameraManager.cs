@@ -1,15 +1,15 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-[ExecuteAlways]
 public class CameraManager : MonoBehaviour
 {
+
     public enum CameraType
     {
         Isometric,
         Cenital
     }
-
+    [SerializeField] PlayerData _playerData;
     [SerializeField] CinemachineCamera _isometricCamera;
     [SerializeField] CinemachineCamera _cenitalCamera;
     [SerializeField] CameraType _currentCameraType;
@@ -17,38 +17,66 @@ public class CameraManager : MonoBehaviour
     private IsometricCamera _isometricController;
     private CenitalCamera _cenitalController;
 
+    private float _inputRotation;
+
     void Awake()
     {
         _isometricController = new IsometricCamera(_isometricCamera);
         _cenitalController = new CenitalCamera(_cenitalCamera);
     }
-    void Start() => UpdateCameras(_currentCameraType);
+    void OnEnable()
+    {
+        CameraInputController.OnCameraInput += OnCameraInput;
+    }
+    void OnDisable()
+    {
+        CameraInputController.OnCameraInput -= OnCameraInput;
+    }
+    void Start()
+    {
+        _currentCameraType = _playerData.IsInEditMode ? CameraType.Isometric : CameraType.Cenital;
+        UpdateCameras(_currentCameraType);
+    }
+    void Update() => OnRotate(_inputRotation);
+    private void OnCameraInput(CameraInputController.InputType inputType, float value)
+    {
+        switch(inputType)
+        {
+            case CameraInputController.InputType.Zoom:
+                OnZoom(value);
+                break;
+            case CameraInputController.InputType.Rotate:
+                _inputRotation = value;
+                break;
+            case CameraInputController.InputType.SwitchCameraType:
+                ToggleCameraType();
+                break;
+        }
+    }
     public void ToggleCameraType()
     {
         _currentCameraType = _currentCameraType == CameraType.Isometric ? CameraType.Cenital : CameraType.Isometric;
         UpdateCameras(_currentCameraType);
     }
-    public void Zoom(float delta)
+    private void OnZoom(float delta)
     {
         switch(_currentCameraType)
         {
             case CameraType.Isometric:
                 _isometricController.Zoom(delta);
                 break;
-            case CameraType.Cenital:
-                _cenitalController.Zoom(delta);
+            default:
                 break;
         }
     }
-    public void Rotate(float delta)
+    private void OnRotate(float delta)
     {
         switch(_currentCameraType)
         {
             case CameraType.Isometric:
                 _isometricController.Rotate(delta);
                 break;
-            case CameraType.Cenital:
-                _cenitalController.Rotate(delta);
+            default:
                 break;
         }
     }

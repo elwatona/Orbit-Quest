@@ -40,7 +40,7 @@ public class Orbit : MonoBehaviour, IOrbitable
     void CacheReferences()
     {
         if (!_transform) _transform = transform;
-        if (_shaderController == null) _shaderController = new OrbitRenderer(_orbitRenderer, _transform, Camera.main.transform);
+        _shaderController = new OrbitRenderer(_orbitRenderer, _transform, Camera.main.transform);
     }
     public void EnterOrbit()
     {
