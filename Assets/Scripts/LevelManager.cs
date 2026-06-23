@@ -55,7 +55,7 @@ public class LevelManager : MonoBehaviour
             astroPresetEntries[i] = entry;
         }
         PresetData presetData = new PresetData(astroPresetEntries);
-        FileManager.SavePreset(presetName, presetData);
+        PresetFileManager.Write(presetName, presetData);
     }
     private void ClearAstros()
     {

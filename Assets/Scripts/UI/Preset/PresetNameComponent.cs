@@ -1,10 +1,11 @@
 using UnityEngine;
 using TMPro;
-using Unity.VisualScripting;
+using UnityEngine.UI;
 
 public class PresetNameComponent : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _presetName;
+    [SerializeField] Image _background;
     public string GetPresetName() => _presetName.text;
     void OnEnable()
     {
@@ -26,11 +27,11 @@ public class PresetNameComponent : MonoBehaviour
     {
         if (preset == this)
         {
-            _presetName.fontStyle = FontStyles.Strikethrough;
+            _background.color = Color.black;
         }
         else
         {
-            _presetName.fontStyle = FontStyles.Normal;
+            _background.color = Color.gray;
         }
     }
 }
