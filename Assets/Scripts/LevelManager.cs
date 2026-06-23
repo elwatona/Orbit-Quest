@@ -61,7 +61,7 @@ public class LevelManager : MonoBehaviour
     {
         foreach (Astro astro in _astros)
         {
-            astro.Deactivate();
+            _astroFactory.Release(astro);
         }
         _astros.Clear();
     }

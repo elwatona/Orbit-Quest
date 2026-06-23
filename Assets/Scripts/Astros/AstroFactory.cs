@@ -100,4 +100,14 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
 
         return astro;
     }
+    public void Release(Astro astro)
+    {
+        GameObjectPool pool = GetPool(astro.Data.type);
+        if (pool == null)
+        {
+            Debug.LogError($"AstroFactory: no pool for type {astro.Data.type}.", this);
+            return;
+        }
+        pool.Release(astro.gameObject);
+    }
 }

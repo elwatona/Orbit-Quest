@@ -119,6 +119,7 @@ public class PlayerInputController : MonoBehaviour
         {
             "F2" => PanelEnum.Controls,
             "F3" => PanelEnum.PlayerData,
+            "F12" => PanelEnum.Console,
             _ => PanelEnum.None
         };
     }

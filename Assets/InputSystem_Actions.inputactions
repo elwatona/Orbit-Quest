@@ -308,8 +308,19 @@
                 },
                 {
                     "name": "",
+                    "id": "ea858098-bd70-4031-a482-b208f9108e9b",
+                    "path": "<Keyboard>/f2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "Toggle Inspectors",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "a77f1613-89dc-4a04-8fc6-a60f0dc570cc",
-                    "path": "<Keyboard>/f3",
+                    "path": "<Keyboard>/f12",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",

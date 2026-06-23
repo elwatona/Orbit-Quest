@@ -7,7 +7,7 @@ public class GameplayUIMediator : MonoBehaviour
 {
     [SerializeField] PlayerData _playerData;
     [SerializeField] Transform _orbPanelTransform;
-    [SerializeField] GameObject _controlsPanel;
+    [SerializeField] GameObject _controlsPanel, _consolePanel;
     [SerializeField] TextMeshProUGUI _editModeText, _versionText;
 
     private OrbPanel _orbPanel;
@@ -60,6 +60,7 @@ public class GameplayUIMediator : MonoBehaviour
     void HandlePanelToggled(PanelEnum panel)
     {
         if(panel == PanelEnum.Controls) _controlsPanel.SetActive(!_controlsPanel.activeSelf);
+        if(panel == PanelEnum.Console) _consolePanel.SetActive(!_consolePanel.activeSelf);
     }
 
     void HandleSpeedChanged()
