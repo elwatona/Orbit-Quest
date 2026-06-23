@@ -34,10 +34,12 @@ public class PresetSave
         Failed,
         NameAlreadyExists
     }
-    public SavePresetResult TrySavePreset()
+    public SavePresetResult TrySavePreset(out string presetName)
     {
+        presetName = string.Empty;
         if(string.IsNullOrEmpty(_desiredName.text)) return SavePresetResult.Failed;
         else if(FileManager.PresetNameExists(_desiredName.text)) return SavePresetResult.NameAlreadyExists;
+        presetName = _desiredName.text;
         return SavePresetResult.Success;
     }
     public void SetActive(bool active)

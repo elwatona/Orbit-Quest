@@ -6,7 +6,7 @@ public class EditorInputController : MonoBehaviour
     [SerializeField] PlayerData _playerData;
     [SerializeField] GameObject _orbGameObject;
     [SerializeField] Transform _spawnPointGameObject;
-    [SerializeField] AstroFactory _astroFactory;
+    [SerializeField] LevelManager _levelManager;
 
     public void SetSpawnPoint(InputAction.CallbackContext context)
     {
@@ -22,12 +22,12 @@ public class EditorInputController : MonoBehaviour
     public void CreateAstro(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        if (_astroFactory == null || !_playerData.IsInEditMode) return;
+        if (_levelManager == null || !_playerData.IsInEditMode) return;
 
         AstroType type = GetAstroTypeFromBinding(context);
         if (type == AstroType.None) return;
         
-        _astroFactory.Create(type, _playerData.CursorWorld);
+        _levelManager.CreateAstro(type, _playerData.CursorWorld);
     }
     /// <summary>Called by the Developer Mode input action (F1). Toggles developer mode and notifies DeveloperToolsUI (and any other consumers) with the new value.</summary>
     public void DeveloperMode(InputAction.CallbackContext context)

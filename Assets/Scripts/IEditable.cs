@@ -19,6 +19,7 @@ public interface IEditable
     void UpdateOrbiterTargets(IEditable[] targets);
     bool HasOrbiter();
 }
+[Serializable]
 public struct EditableData
 {
     public AstroType type;
@@ -26,20 +27,24 @@ public struct EditableData
     public EditableOrbitData orbit;
     public EditableOrbiterData orbiter;
 }
+[Serializable]
 public struct EditableBodyData
 {
     public float radius;
     public float rotationSpeed;
 }
+[Serializable]
 public struct EditableOrbitData
 {
     public float radius;
     public float gravity;
 }
+[Serializable]
 public struct EditableOrbiterData
 {
     public float speed;
     public float radius;
     public float eccentricity;
+    public int[] targetIndices;
     public IEditable[] targets;
 }

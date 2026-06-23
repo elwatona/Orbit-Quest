@@ -2,7 +2,7 @@ using UnityEngine;
 using TMPro;
 using Unity.VisualScripting;
 
-public class Preset : MonoBehaviour
+public class PresetNameComponent : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _presetName;
     public string GetPresetName() => _presetName.text;
@@ -22,7 +22,7 @@ public class Preset : MonoBehaviour
     {
         _presetName.text = presetName;
     }
-    void HandlePresetSelected(Preset preset)
+    void HandlePresetSelected(PresetNameComponent preset)
     {
         if (preset == this)
         {

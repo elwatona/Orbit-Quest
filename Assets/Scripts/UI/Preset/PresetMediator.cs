@@ -5,7 +5,7 @@ public class PresetManager : MonoBehaviour
 {
     [SerializeField] PresetList _presetList;
     [SerializeField] PresetSave _presetSave;
-    private Preset _selectedPreset;
+    private PresetNameComponent _selectedPreset;
     void OnEnable()
     {
         PresetEvents.OnPresetSelected += HandlePresetSelected;
@@ -20,20 +20,21 @@ public class PresetManager : MonoBehaviour
         PresetEvents.OnPresetSelected -= HandlePresetSelected;
         PresetEvents.OnPresetNamesLoaded -= _presetList.LoadPresets;
     }
-    void HandlePresetSelected(Preset preset)
+    void HandlePresetSelected(PresetNameComponent preset)
     {
         _selectedPreset = preset;
     }
     public void LoadSelectedPreset()
     {
         //Cargar los valores del preset seleccionado a partir de un JSON cuyo nombre es el nombre del preset
+        FileManager.LoadPreset(_selectedPreset.GetPresetName());
     }
     public void TrySavePreset()
     {
-        switch(_presetSave.TrySavePreset())
+        switch(_presetSave.TrySavePreset(out string presetName))
         {
             case PresetSave.SavePresetResult.Success:
-                // Leer los valores de preset a partir de un Manager en escena.
+                PresetEvents.RaisePresetSavedEvent(presetName);
                 _presetSave.SetActive(false);
                 break;
             case PresetSave.SavePresetResult.Failed:

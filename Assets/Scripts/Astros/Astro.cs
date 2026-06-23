@@ -45,6 +45,14 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
         }
     };
 
+    public AstroPresetEntry ToAstroPresetEntry()
+    {
+        return new AstroPresetEntry
+        {
+            Position = transform.position,
+            EditableData = Data
+        };
+    }
 
     void Awake()
     {
@@ -165,21 +173,25 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 
     public void UpdateOrbiterSpeed(float speed)
     {
+        if (_orbiter == null) return;
         _orbiter.SetSpeed(speed);
     }
 
     public void UpdateOrbiterRadius(float radius)
     {
+        if (_orbiter == null) return;
         _orbiter.SetRadius(radius);
     }
 
     public void UpdateOrbiterEccentricity(float eccentricity)
     {
+        if (_orbiter == null) return;
         _orbiter.SetEccentricity(eccentricity);
     }
 
     public void UpdateOrbiterTargets(IEditable[] targets)
     {
+        if (_orbiter == null) return;
         _orbiter.SetTargets(targets);
     }
 }
