@@ -94,7 +94,7 @@ public class Orb : MonoBehaviour, ILevelBounds
     void LateUpdate()
     {
         _screenPosition = Camera.main.WorldToViewportPoint(transform.position);
-        if (!Limits.IsInside(transform.position)) gameObject.SetActive(false);
+        if (!Limits.IsInside(new Vector2(transform.position.x, transform.position.z))) gameObject.SetActive(false);
 
         if (_isAiming)
         {

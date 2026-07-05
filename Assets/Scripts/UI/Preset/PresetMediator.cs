@@ -5,6 +5,7 @@ public class PresetManager : MonoBehaviour
 {
     [SerializeField] PresetList _presetList;
     [SerializeField] PresetSave _presetSave;
+    [SerializeField] PresetLimits _presetLimits;
     private PresetNameComponent _selectedPreset;
     void OnEnable()
     {
@@ -15,6 +16,7 @@ public class PresetManager : MonoBehaviour
     {
         PresetFileManager.LoadNames();
         _presetSave.Start();
+        _presetLimits.Start();
     }
     void OnDisable()
     {

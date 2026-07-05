@@ -206,7 +206,7 @@
                 "m_Node": {
                     "m_Id": "e9d55417358e4c4ca1182a0b7baba9d9"
                 },
-                "m_SlotId": 725995041
+                "m_SlotId": -1038088032
             }
         },
         {
@@ -1107,7 +1107,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 4,
+    "m_Space": 2,
     "m_PositionSource": 0
 }
 
@@ -5154,6 +5154,29 @@
 }
 
 {
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "d9e8230b7ed44a8a8675779c8bb37aa9",
+    "m_Id": -1038088032,
+    "m_DisplayName": "Value",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Value",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
     "m_ObjectId": "dbd52d28cf244edfa0a569c22996d9ee",
@@ -5179,27 +5202,6 @@
         "x": 0.0,
         "y": 1.0
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
-    "m_ObjectId": "dc7a0e96ae074022bf2cf13543c0e42c",
-    "m_Id": 725995041,
-    "m_DisplayName": "Value",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "_Value",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
-    },
-    "m_Labels": []
 }
 
 {
@@ -5502,7 +5504,7 @@
     },
     "m_Slots": [
         {
-            "m_Id": "dc7a0e96ae074022bf2cf13543c0e42c"
+            "m_Id": "d9e8230b7ed44a8a8675779c8bb37aa9"
         },
         {
             "m_Id": "93ee761e657b40ea8a3f92573dc4e026"
@@ -5526,12 +5528,14 @@
     "m_PropertyGuids": [
         "8ef48f4d-4a55-42d2-aba4-7867a306be05",
         "378e7055-0284-4c55-87bf-61087fb9ce7a",
-        "1ee830a3-13ab-48c6-889f-c928a172a255"
+        "1ee830a3-13ab-48c6-889f-c928a172a255",
+        "5a59bfed-86da-4d92-acd3-547c3be2bfa9"
     ],
     "m_PropertyIds": [
         -1361025264,
         158626857,
-        725995041
+        725995041,
+        -1038088032
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []

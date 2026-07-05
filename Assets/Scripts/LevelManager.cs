@@ -40,6 +40,7 @@ public class LevelManager : MonoBehaviour
         ClearAstros();
         LoadAstros(presetData.AstroPresetEntries);
         UpdateAstrosOrbit(presetData.AstroPresetEntries);
+        _limits.SetLimits(presetData.Limits.min, presetData.Limits.max);
     }
     void HandlePresetSaved(string presetName)
     {
@@ -54,7 +55,7 @@ public class LevelManager : MonoBehaviour
             entry.EditableData = editableData;
             astroPresetEntries[i] = entry;
         }
-        PresetData presetData = new PresetData(astroPresetEntries);
+        PresetData presetData = new PresetData(LimitsData.From(_limits), astroPresetEntries);
         PresetFileManager.Write(presetName, presetData);
     }
     private void ClearAstros()

@@ -4,9 +4,11 @@ using UnityEngine;
 [Serializable]
 public struct PresetData
 {
+    public LimitsData Limits;
     public AstroPresetEntry[] AstroPresetEntries;
-    public PresetData(AstroPresetEntry[] astroPresetEntries)
+    public PresetData(LimitsData limits, AstroPresetEntry[] astroPresetEntries)
     {
+        Limits = limits;
         AstroPresetEntries = astroPresetEntries;
     }
 }

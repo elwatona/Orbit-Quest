@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class EditorUIMediator : MonoBehaviour
 {
+    [SerializeField] GameObject _presetPanel;
     [SerializeField] PlayerData _playerData;
     [SerializeField] PanelController[] _panelControllers;
     [SerializeField] ScrollComponent _targetsToOrbitScrollComponent;
@@ -39,6 +40,7 @@ public class EditorUIMediator : MonoBehaviour
     }
     void HandleEditModeToggled()
     {
+        _presetPanel.SetActive(_playerData.IsInEditMode);
         _controlEditData.SetActive(_playerData.IsInEditMode);
         _controlGameplayData.SetActive(!_playerData.IsInEditMode);
         _editorPanelsMediator.TogglePanel(0, _playerData.IsInEditMode);
