@@ -6,7 +6,7 @@ public class IsometricCamera : CameraController
     private Vector2 _zoomLimits;
     public IsometricCamera(CinemachineCamera camera) : base(camera)
     {
-        _zoomLimits = new Vector2(10, 20);
+        _zoomLimits = new Vector2(10, 100);
         _zoom = new Values(10);
         _rotation = new Values(10);
     }
