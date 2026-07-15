@@ -6,9 +6,21 @@ using TMPro;
 [Serializable]
 public class ScrollComponent
 {
-    [SerializeField] ScrollRect _scrollRect;
-    [SerializeField] GameObject _prefab;
-    private Transform _contentTransform => _scrollRect.content;
+    readonly GameObject _scrollRoot;
+    readonly ScrollRect _scrollRect;
+    readonly Transform _contentTransform;
+    readonly GameObject _prefab;
+    public ScrollComponent(Transform transform, GameObject prefab)
+    {
+        _scrollRoot = transform.gameObject;
+        _scrollRect = transform.GetComponentInChildren<ScrollRect>();
+        _contentTransform = _scrollRect.content;
+        _prefab = prefab;
+    }
+    public void SetActive(bool active)
+    {
+        _scrollRoot.SetActive(active);
+    }
     public void AddItem(string item)
     {
         GameObject itemObject = GameObject.Instantiate(_prefab, _contentTransform);

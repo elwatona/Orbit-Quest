@@ -3,7 +3,7 @@ using TMPro;
 using System;
 public class DropdownComponent
 {
-    private GameObject _dropdownRoot;
+    readonly GameObject _dropdownRoot;
     public Action<int> OnValueChanged;
     readonly TMP_Dropdown _dropdown;
     public DropdownComponent(Transform transform)

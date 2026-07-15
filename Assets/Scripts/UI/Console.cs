@@ -1,6 +1,4 @@
 using UnityEngine;
-using TMPro;
-using Unity.VisualScripting;
 
 public class Console : MonoBehaviour
 {
@@ -15,10 +13,14 @@ public class Console : MonoBehaviour
     {
         Application.logMessageReceived += Log;
     }
+    void OnDisable()
+    {
+        Application.logMessageReceived -= Log;
+    }
     private void Log(string message, string stackTrace, LogType type)
     {
         GameObject logGO = _logPool.Get();
-        LogComponent log = logGO.GetComponent<LogComponent>();
+        LogComponent log = new LogComponent(logGO.transform);
         log.Log(message, stackTrace, type);
     }
 }

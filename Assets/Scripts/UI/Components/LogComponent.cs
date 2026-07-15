@@ -2,11 +2,17 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-public class LogComponent : MonoBehaviour
+public class LogComponent
 {
-    [SerializeField] TextMeshProUGUI _message;
-    [SerializeField] TextMeshProUGUI _stackTrace;
-    [SerializeField] Image _background;
+    readonly TextMeshProUGUI _message;
+    readonly TextMeshProUGUI _stackTrace;
+    readonly Image _background;
+    public LogComponent(Transform transform)
+    {
+        _background = transform.GetComponent<Image>();
+        _message = transform.Find("Message").GetComponent<TextMeshProUGUI>();
+        _stackTrace = transform.Find("Stack").GetComponent<TextMeshProUGUI>();
+    }
     public void Log(string message, string stackTrace, LogType type)
     {
         switch (type)
