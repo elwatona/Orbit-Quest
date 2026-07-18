@@ -6,10 +6,12 @@ public struct PresetData
 {
     public LimitsData Limits;
     public AstroPresetEntry[] AstroPresetEntries;
-    public PresetData(LimitsData limits, AstroPresetEntry[] astroPresetEntries)
+    public Vector3 PlayerSpawnPoint;
+    public PresetData(LimitsData limits, AstroPresetEntry[] astroPresetEntries, Vector3 playerSpawnPoint)
     {
         Limits = limits;
         AstroPresetEntries = astroPresetEntries;
+        PlayerSpawnPoint = playerSpawnPoint;
     }
 }
 

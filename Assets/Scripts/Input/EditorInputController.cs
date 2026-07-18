@@ -13,11 +13,9 @@ public class EditorInputController : MonoBehaviour
     {
         if(!context.started) return;
         if(!_levelData.IsInEditMode) return;
-        if(_orbGameObject.activeSelf) return;
 
-        Vector3 cursorWorldPosition = UnityEngine.Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        cursorWorldPosition.z = 0;
-
+        Vector3 cursorWorldPosition = _playerData.CursorWorld;
+        cursorWorldPosition.y = 0f;
         _spawnPointGameObject.position = cursorWorldPosition;
     }
     public void CreateAstro(InputAction.CallbackContext context)

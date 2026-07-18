@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 public class AstroManager : MonoBehaviour, ILimitable
 {
+    [SerializeField] Transform _playerSpawnPoint;
     [SerializeField] AstroFactoryDependencies _astroFactoryDependencies;
     public Limits Limits { get; private set; }
     private AstroFactory _astroFactory;
@@ -27,6 +28,7 @@ public class AstroManager : MonoBehaviour, ILimitable
         LoadAstros(presetData.AstroPresetEntries);
         UpdateAstrosOrbit(presetData.AstroPresetEntries);
         Limits.SetLimits(presetData.Limits.min, presetData.Limits.max);
+        _playerSpawnPoint.position = presetData.PlayerSpawnPoint;
     }
     private void HandlePresetSaved(string presetName)
     {
@@ -41,7 +43,7 @@ public class AstroManager : MonoBehaviour, ILimitable
             entry.EditableData = editableData;
             astroPresetEntries[i] = entry;
         }
-        PresetData presetData = new PresetData(LimitsData.From(Limits), astroPresetEntries);
+        PresetData presetData = new PresetData(LimitsData.From(Limits), astroPresetEntries, _playerSpawnPoint.position);
         PresetFileManager.Write(presetName, presetData);
     }
     private void ClearAstros()
