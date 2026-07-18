@@ -11,6 +11,9 @@ public class PlayerInputController : MonoBehaviour
     [SerializeField] Transform _spawnPoint;
     [SerializeField] Orb _orb;
     [SerializeField] PlayerData _playerData;
+    [SerializeField] LevelData _levelData;
+
+    private bool _canReadInputs => _levelData.CurrentState == GameState.Precision && _playerData.IsAlive;
 
     Vector3 _lastMoveValue;
 
@@ -23,7 +26,7 @@ public class PlayerInputController : MonoBehaviour
     {
         UpdateCursorWorld();
         
-        if (!_playerData.CanReadInputs) return;
+        if (!_canReadInputs) return;
 
         Vector3 orbPos = _orbGameObject.transform.position;
         Vector2 direction = new Vector2(_playerData.CursorWorld.x - orbPos.x, _playerData.CursorWorld.z - orbPos.z);
@@ -51,7 +54,7 @@ public class PlayerInputController : MonoBehaviour
     }
     public void Aim(InputAction.CallbackContext context)
     {
-        if (!_playerData.CanReadInputs) return;
+        if (!_canReadInputs) return;
         if (context.started)
             _orb.SetAiming(true);
         else if (context.canceled)
@@ -59,7 +62,7 @@ public class PlayerInputController : MonoBehaviour
     }
     public void Impulse(InputAction.CallbackContext context)
     {
-        if(!context.started || !_playerData.CanReadInputs) return;
+        if(!context.started || !_canReadInputs) return;
 
         Vector3 cursorWorldPosition = UnityEngine.Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
@@ -70,7 +73,7 @@ public class PlayerInputController : MonoBehaviour
     /// <summary>Called by the Inertia Stabilizer input action (Left Ctrl). Toggles inertia stabilizer on/off.</summary>
     public void ToggleInertiaStabilizer(InputAction.CallbackContext context)
     {
-        if (!context.started || !_playerData.CanReadInputs) return;
+        if (!context.started || !_canReadInputs) return;
         _orb.ToggleInertiaStabilizer();
     }
 
@@ -86,7 +89,7 @@ public class PlayerInputController : MonoBehaviour
 
         _lastMoveValue = Vector3.ClampMagnitude(_lastMoveValue, 1f);
 
-        if (!_playerData.CanReadInputs) return;
+        if (!_canReadInputs) return;
         _orb.SetThrustInput(_lastMoveValue);
     }
 

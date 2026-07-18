@@ -13,7 +13,7 @@ public class PlayerData : ScriptableObject
     public ImpulseResource ImpulseResource => _impulseResource;
     public ThrusterResource ThrusterResource => _thrusterResource;
     public InertiaResource InertiaResource => _inertiaResource;
-    public bool CanReadInputs => _status == PlayerStatus.Alive;
+    public bool IsAlive => _status == PlayerStatus.Alive;
     public Vector3 CursorWorld => _cursorWorld;
     public OrbiterSettings ToOrbiterSettings()
     {

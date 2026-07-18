@@ -60,9 +60,6 @@ public class EditorUIController : MonoBehaviour
         bool isEdition = gameState == GameState.Edition;
         _playerEditableData.Toggle(isEdition);
         _levelLimitsUI.Toggle(isEdition);
-        _astroMovement.Toggle(isEdition);
-        _astroEditableData.Toggle(isEdition);
-        _astroSelector.Toggle(isEdition);
     }
     private void HandleStateExited(GameState gameState)
     {
@@ -71,9 +68,9 @@ public class EditorUIController : MonoBehaviour
         _levelLimitsUI.Toggle(false);
         _astroMovement.Toggle(false);
         _astroEditableData.Toggle(false);
-        _astroSelector.Toggle(false);
-        _presetList.Toggle(false);
         _presetSave.Toggle(false);
+        ClosePresetList();
+        if(_isSelectingTargets) CancelSelectingTargets();
     }
     private void HandleAstroClicked(IEditable editable)
     {
