@@ -12,9 +12,10 @@ public class CameraManager
     public CameraManager(CameraManagerDependencies dependencies)
     {
         _levelData = dependencies.LevelData;
-        _editorCamera = new EditorCamera(dependencies.EditorCamera);
-        _precisionCamera = new PrecisionCamera(dependencies.PrecisionCamera);
-        _contemplativeCamera = new PrecisionCamera(dependencies.ContemplativeCamera);
+        var sharedZoom = new SharedCameraZoom();
+        _editorCamera = new EditorCamera(dependencies.EditorCamera, sharedZoom);
+        _precisionCamera = new PrecisionCamera(dependencies.PrecisionCamera, sharedZoom);
+        _contemplativeCamera = new PrecisionCamera(dependencies.ContemplativeCamera, sharedZoom);
     }
     public void Subscribe()
     {
@@ -45,6 +46,12 @@ public class CameraManager
         {
             case GameState.Edition:
                 _editorCamera.Zoom(delta);
+                break;
+            case GameState.Precision:
+                _precisionCamera.Zoom(delta);
+                break;
+            case GameState.Contemplative:
+                _contemplativeCamera.Zoom(delta);
                 break;
         }
     }

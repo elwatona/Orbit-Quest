@@ -84,6 +84,7 @@ public class GameplayUIController : MonoBehaviour
     void HandleStateEntered(GameState gameState)
     {
         _playerInfo.Toggle(gameState == GameState.Precision);
+        _astroInfo.Toggle(false);
     }
     void HandleStateExited(GameState gameState)
     {

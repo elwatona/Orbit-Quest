@@ -73,7 +73,10 @@ public class FreelookPosition : MonoBehaviour
     private void OnStateEntered(GameState state)
     {
         if (state == GameState.Precision)
+        {
             _followTarget = true;
+            _transform.position = _target.position;
+        }
     }
 
     private void OnStateExited(GameState state)

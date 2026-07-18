@@ -2633,7 +2633,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: -50
+  near clip plane: -20
   far clip plane: 1000
   field of view: 60
   orthographic: 1
@@ -2661,8 +2661,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 3.656111, y: 47.910778, z: -32.991558}
+  m_LocalRotation: {x: 0.7047459, y: 0, z: 0, w: 0.70945984}
+  m_LocalPosition: {x: -0.16, y: 16.67, z: 9.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4742,7 +4742,7 @@ MonoBehaviour:
         DecelTime: 0.2
     - Name: Look Orbit Y
       Owner: {fileID: 544002787}
-      Enabled: 1
+      Enabled: 0
       Input:
         InputAction: {fileID: -4276277924429503425, guid: 052faaac586de48259a63d0c4782560b, type: 3}
         Gain: -100
@@ -4825,9 +4825,9 @@ MonoBehaviour:
       Time: 2
     Restrictions: 0
   VerticalAxis:
-    Value: 45
+    Value: 100
     Center: 17.5
-    Range: {x: -10, y: 45}
+    Range: {x: -10, y: 100}
     Wrap: 0
     Recentering:
       Enabled: 0
@@ -6030,10 +6030,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelData: {fileID: 11400000, guid: f27e5460a57e9f74a85d553a04d57d4a, type: 2}
   _target: {fileID: 677214016}
-  _xSpeed: 250
-  _ySpeed: 120
-  _yMinLimit: -20
-  _yMaxLimit: 80
   _smoothTime: 2
 --- !u!1 &618238514
 GameObject:
@@ -6941,9 +6937,9 @@ MonoBehaviour:
       Time: 2
     Restrictions: 0
   VerticalAxis:
-    Value: 45
+    Value: 100
     Center: 17.5
-    Range: {x: -10, y: 45}
+    Range: {x: -10, y: 100}
     Wrap: 0
     Recentering:
       Enabled: 0
@@ -6992,7 +6988,7 @@ MonoBehaviour:
         DecelTime: 0.2
     - Name: Look Orbit Y
       Owner: {fileID: 732555347}
-      Enabled: 1
+      Enabled: 0
       Input:
         InputAction: {fileID: -4276277924429503425, guid: 052faaac586de48259a63d0c4782560b, type: 3}
         Gain: -100

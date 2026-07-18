@@ -3,20 +3,23 @@ using Unity.Cinemachine;
 
 public class EditorCamera : Camera
 {
-    readonly Vector2 _zoomLimits = new Vector2(10, 100);
-    public EditorCamera(CinemachineCamera camera) : base(camera)
+    public EditorCamera(CinemachineCamera camera, SharedCameraZoom sharedZoom) : base(camera, sharedZoom)
     {
-        _zoom = new Values(10);
-        _rotation = new Values(10);
     }
 
     public override void Zoom(float delta)
     {
-        _zoom.Set(Mathf.Clamp(_zoom.value + delta, 0, _zoom.maxStep));
-    
-        _camera.Lens.OrthographicSize = Mathf.Lerp(_camera.Lens.OrthographicSize, _camera.Lens.OrthographicSize + delta * 5f, _zoom.lerp);
-        _camera.Lens.OrthographicSize = Mathf.Clamp(_camera.Lens.OrthographicSize, _zoomLimits.x, _zoomLimits.y);
+        _zoom.Set(delta);
+
+        float nextOrtho = Mathf.Clamp(
+            _sharedZoom.OrthographicSize + delta * 5f,
+            _sharedZoom.Limits.x,
+            _sharedZoom.Limits.y);
+
+        _sharedZoom.OrthographicSize = nextOrtho;
+        _camera.Lens.OrthographicSize = nextOrtho;
     }
+
     public override void Rotate(float delta)
     {
         _cameraTransform.RotateAround(_cameraTransform.position, Vector3.up, delta);
