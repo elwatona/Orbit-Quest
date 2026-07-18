@@ -1,31 +1,54 @@
 using UnityEngine;
-
+using System.Collections.Generic;
 public class LevelMediator : MonoBehaviour
 {
-    [SerializeField] private GameState _initialState;
-    [SerializeField, Space(10)] private AudioDependencies _audioDependencies;
-    [SerializeField] private CameraManagerDependencies _cameraDependencies;
-    private LevelSignals _levelSignals;
-    private GameStateController _gameStateController;
+    [Header("Settings")]
+    [SerializeField] LevelData _levelData;
+    [SerializeField] Limits _limits;
+    [Header("Dependencies")]
+    [SerializeField] AudioDependencies _audioDependencies;
+    [SerializeField] CameraManagerDependencies _cameraDependencies;
+    [Header("Level Bounds")]
+    [SerializeField] GameObject[] _levelBoundsGO;
     private CameraManager _cameraManager;
     private AudioManager _audioManager;
-    private void Awake()
+    private List<ILimitable> _levelBounds = new List<ILimitable>();
+    void Awake()
     {
-        _levelSignals = new LevelSignals();
-        InitializeManagers();
-        InitializeControllers();
-    }
-    private void InitializeManagers()
-    {
+        _levelData.Initialize();
         _cameraManager = new CameraManager(_cameraDependencies);
         _audioManager = new AudioManager(_audioDependencies);
+        UpdateLimitables();
     }
-    private void InitializeControllers()
+    void OnEnable()
     {
-        _gameStateController = new GameStateController(_levelSignals, _initialState);
+        _cameraManager.Subscribe();
     }
-    private void Update()
+    void OnDisable()
+    {
+        _cameraManager.Unsubscribe();
+    }
+    void Start() => _levelData.Start();
+    void Update()
     {
         _cameraManager.Update();
+    }
+
+    private void UpdateLimitables()
+    {
+        foreach (GameObject levelBoundGO in _levelBoundsGO)
+        {
+            levelBoundGO.TryGetComponent(out ILimitable levelBound);
+            if (levelBound != null)
+            {
+                _levelBounds.Add(levelBound);
+            }
+        }
+        foreach (ILimitable levelBound in _levelBounds)
+        {
+            levelBound.SetLimits(_limits);
+        }
+        Shader.SetGlobalVector("_Limits_Min", _limits.Min);
+        Shader.SetGlobalVector("_Limits_Max", _limits.Max);
     }
 }

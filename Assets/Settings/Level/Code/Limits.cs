@@ -8,9 +8,9 @@ public class Limits : ScriptableObject
     [SerializeField] Vector2 _max;
     public Vector2 Min => _min;
     public Vector2 Max => _max;
-    public bool IsInside(Vector2 position)
+    public bool IsInside(float x, float y)
     {
-        return position.x >= Min.x && position.x <= Max.x && position.y >= Min.y && position.y <= Max.y;
+        return x >= Min.x && x <= Max.x && y >= Min.y && y <= Max.y;
     }
     public void SetLimits(Vector2 min, Vector2 max)
     {

@@ -1,4 +1,4 @@
-using UnityEngine;  
+using UnityEngine;
 using System;
 
 public enum RuntimeUIEvent
@@ -17,8 +17,9 @@ public enum RuntimeUIEvent
 }
 public class UIEventHandler : MonoBehaviour
 {
-    public static event Action<UIEvent> UIRuntimeEvent;
+    public static event Action<UIEvent> OnUIEvent;
     [SerializeField] PlayerData _playerData;
+    [SerializeField] LevelData _levelData;
     [SerializeField] bool _debug = false;
     void OnEnable()
     {
@@ -36,6 +37,8 @@ public class UIEventHandler : MonoBehaviour
         _playerData.ThrusterResource.ThrusterSettingsChanged += HandleThrusterSettingsChanged;
         PlayerInputController.OnPanelToggled += HandlePanelToggled;
         Astro.OnEditableClicked += HandleAstroEditableClicked;
+        _levelData.StateEntered += HandleStateEntered;
+        _levelData.StateExited += HandleStateExited;
     }
     public void UnsubscribeResourceEventsFromUIEvent()
     {
@@ -44,32 +47,46 @@ public class UIEventHandler : MonoBehaviour
         _playerData.ThrusterResource.ThrusterSettingsChanged -= HandleThrusterSettingsChanged;
         PlayerInputController.OnPanelToggled -= HandlePanelToggled;
         Astro.OnEditableClicked -= HandleAstroEditableClicked;
+        _levelData.StateEntered -= HandleStateEntered;
+        _levelData.StateExited -= HandleStateExited;
+    }
+    void HandleStateEntered(GameState gameState)
+    {
+        OnUIEvent?.Invoke(new UIEvent(UIEvent.EventKind.StateEntered, gameState));
+    }
+    void HandleStateExited(GameState gameState)
+    {
+        OnUIEvent?.Invoke(new UIEvent(UIEvent.EventKind.StateExited, gameState));
     }
     void HandleImpulseSettingsChanged(ImpulseSettingsChangeType changeType)
     {
+        if(_levelData.CurrentState != GameState.Precision) return;
         if (_debug) Debug.Log("HandleImpulseSettingsChanged: " + changeType);
         RuntimeUIEvent runtimeUIEvent = GetRuntimeUIEventForImpulseSettingsChange(changeType);
-        UIRuntimeEvent?.Invoke(new UIEvent(runtimeUIEvent));
+        OnUIEvent?.Invoke(new UIEvent(runtimeUIEvent));
     }
     void HandleInertiaSettingsChanged(InertiaSettingsChangeType changeType)
     {
+        if(_levelData.CurrentState != GameState.Precision) return;
         if (_debug) Debug.Log("HandleInertiaSettingsChanged: " + changeType);
         RuntimeUIEvent runtimeUIEvent = GetRuntimeUIEventForInertiaSettingsChange(changeType);
-        UIRuntimeEvent?.Invoke(new UIEvent(runtimeUIEvent));
+        OnUIEvent?.Invoke(new UIEvent(runtimeUIEvent));
     }
     void HandleThrusterSettingsChanged(ThrusterSettingsChangeType changeType)
     {
+        if(_levelData.CurrentState != GameState.Precision) return;
         if (_debug) Debug.Log("HandleThrusterSettingsChanged: " + changeType);
         RuntimeUIEvent runtimeUIEvent = GetRuntimeUIEventForThrusterSettingsChange(changeType);
-        UIRuntimeEvent?.Invoke(new UIEvent(runtimeUIEvent));
+        OnUIEvent?.Invoke(new UIEvent(runtimeUIEvent));
     }
     void HandlePanelToggled(PanelEnum panel)
     {
-        UIRuntimeEvent?.Invoke(new UIEvent(panelEnum: panel));
+        OnUIEvent?.Invoke(new UIEvent(panel));
     }
     void HandleAstroEditableClicked(IEditable editable)
     {
-        UIRuntimeEvent?.Invoke(new UIEvent(panelEnum: PanelEnum.AstroInfo, editable: editable));
+        if(_levelData.CurrentState != GameState.Precision) return;
+        OnUIEvent?.Invoke(new UIEvent(PanelEnum.AstroInfo, editable));
     }
     static RuntimeUIEvent GetRuntimeUIEventForImpulseSettingsChange(ImpulseSettingsChangeType changeType)
     {
@@ -78,7 +95,8 @@ public class UIEventHandler : MonoBehaviour
             ImpulseSettingsChangeType.ImpulseForce => RuntimeUIEvent.ImpulseForceChanged,
             ImpulseSettingsChangeType.RechargeDuration => RuntimeUIEvent.ImpulseRechargeDurationChanged,
             ImpulseSettingsChangeType.ImpulseMode => RuntimeUIEvent.ImpulseModeChanged,
-            ImpulseSettingsChangeType.EnergyChanged => RuntimeUIEvent.ImpulseEnergyChanged
+            ImpulseSettingsChangeType.EnergyChanged => RuntimeUIEvent.ImpulseEnergyChanged,
+            _ => RuntimeUIEvent.None
         };
     }
     static RuntimeUIEvent GetRuntimeUIEventForInertiaSettingsChange(InertiaSettingsChangeType changeType)
@@ -87,7 +105,8 @@ public class UIEventHandler : MonoBehaviour
         {
             InertiaSettingsChangeType.InertiaStabilizer => RuntimeUIEvent.InertiaStabilizerChanged,
             InertiaSettingsChangeType.InertiaDampTime => RuntimeUIEvent.InertiaDampTimeChanged,
-            InertiaSettingsChangeType.StabilizerMaxThrustSpeed => RuntimeUIEvent.StabilizerMaxThrustSpeedChanged
+            InertiaSettingsChangeType.StabilizerMaxThrustSpeed => RuntimeUIEvent.StabilizerMaxThrustSpeedChanged,
+            _ => RuntimeUIEvent.None
         };
     }
     static RuntimeUIEvent GetRuntimeUIEventForThrusterSettingsChange(ThrusterSettingsChangeType changeType)
@@ -96,19 +115,41 @@ public class UIEventHandler : MonoBehaviour
         {
             ThrusterSettingsChangeType.ThrustForce => RuntimeUIEvent.ThrustForceChanged,
             ThrusterSettingsChangeType.MinThrustAssist => RuntimeUIEvent.MinThrustAssistChanged,
-            ThrusterSettingsChangeType.SpeedChanged => RuntimeUIEvent.SpeedChanged
+            ThrusterSettingsChangeType.SpeedChanged => RuntimeUIEvent.SpeedChanged,
+            _ => RuntimeUIEvent.None
         };
     }
 }
 public class UIEvent
 {
+    public enum EventKind { Runtime, Panel, StateEntered, StateExited }
+    public readonly EventKind Kind;
     public readonly RuntimeUIEvent RuntimeUIEvent;
     public readonly PanelEnum PanelEnum;
     public readonly IEditable Editable;
-    public UIEvent(RuntimeUIEvent runtimeUIEvent = RuntimeUIEvent.None, PanelEnum panelEnum = PanelEnum.None, IEditable editable = null)
+    public readonly GameState GameState;
+    public UIEvent(RuntimeUIEvent runtimeUIEvent)
     {
+        Kind = EventKind.Runtime;
         RuntimeUIEvent = runtimeUIEvent;
+        PanelEnum = default;
+        Editable = null;
+        GameState = default;
+    }
+    public UIEvent(PanelEnum panelEnum, IEditable editable = null)
+    {
+        Kind = EventKind.Panel;
+        RuntimeUIEvent = default;
         PanelEnum = panelEnum;
         Editable = editable;
+        GameState = default;
+    }
+    public UIEvent(EventKind kind, GameState gameState)
+    {
+        Kind = kind; // StateEntered o StateExited
+        RuntimeUIEvent = default;
+        PanelEnum = default;
+        Editable = null;
+        GameState = gameState;
     }
 }

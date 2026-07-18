@@ -1,8 +1,7 @@
 using UnityEngine;
 
-public class AudioManager : IManager
+public class AudioManager
 {
-    public LevelSignals LevelSignals { get; }
     private AudioDependencies _dependencies;
     public AudioManager(AudioDependencies dependencies)
     {

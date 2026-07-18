@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Orb : MonoBehaviour, ILevelBounds
+public class Orb : MonoBehaviour, ILimitable
 {
 #region ILevelBounds
     public Limits Limits { get; private set; }
@@ -21,9 +21,7 @@ public class Orb : MonoBehaviour, ILevelBounds
     private Rigidbody _rb;
     private Vector3 _thrustInput;
     private Vector2 _aimDirection;
-    private Vector3 _screenPosition;
     private bool _isAiming;
-    private bool _isInScreen => _screenPosition.x > 0 & _screenPosition.x < 1 & _screenPosition.y > 0 & _screenPosition.y < 1;
 
     public void SetInertiaStabilizer(bool value)
     {
@@ -93,8 +91,7 @@ public class Orb : MonoBehaviour, ILevelBounds
 
     void LateUpdate()
     {
-        _screenPosition = Camera.main.WorldToViewportPoint(transform.position);
-        if (!Limits.IsInside(new Vector2(transform.position.x, transform.position.z))) gameObject.SetActive(false);
+        if (!Limits.IsInside(transform.position.x, transform.position.z)) gameObject.SetActive(false);
 
         if (_isAiming)
         {

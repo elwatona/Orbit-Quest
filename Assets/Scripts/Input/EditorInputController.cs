@@ -3,18 +3,19 @@ using UnityEngine.InputSystem;
 
 public class EditorInputController : MonoBehaviour
 {
+    [SerializeField] LevelData _levelData;
     [SerializeField] PlayerData _playerData;
     [SerializeField] GameObject _orbGameObject;
     [SerializeField] Transform _spawnPointGameObject;
-    [SerializeField] LevelManager _levelManager;
+    [SerializeField] AstroManager _astroManager;
 
     public void SetSpawnPoint(InputAction.CallbackContext context)
     {
         if(!context.started) return;
-        if(!_playerData.IsInEditMode) return;
+        if(!_levelData.IsInEditMode) return;
         if(_orbGameObject.activeSelf) return;
 
-        Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 cursorWorldPosition = UnityEngine.Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
 
         _spawnPointGameObject.position = cursorWorldPosition;
@@ -22,32 +23,40 @@ public class EditorInputController : MonoBehaviour
     public void CreateAstro(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        if (_levelManager == null || !_playerData.IsInEditMode) return;
+        if (_astroManager == null || !_levelData.IsInEditMode) return;
 
         AstroType type = GetAstroTypeFromBinding(context);
         if (type == AstroType.None) return;
         
-        _levelManager.CreateAstro(type, _playerData.CursorWorld);
+        _astroManager.CreateAstro(type, _playerData.CursorWorld);
     }
-    /// <summary>Called by the Developer Mode input action (F1). Toggles developer mode and notifies DeveloperToolsUI (and any other consumers) with the new value.</summary>
     public void DeveloperMode(InputAction.CallbackContext context)
     {
         if (!context.started) return;
-        _playerData.SetIsInEditMode(!_playerData.IsInEditMode);
+        _levelData.SetState(GetGameStateFromBinding(context));
     }
 
-    /// <summary>
-    /// Obtiene el AstroType según el control que disparó la acción (p. ej. tecla 1=Planet, 2=Asteroid, 3=Sun).
-    /// </summary>
     private static AstroType GetAstroTypeFromBinding(InputAction.CallbackContext context)
     {
         string displayName = context.control?.displayName ?? "";
         return displayName switch
         {
-            "P" => AstroType.Planet,
-            "A" => AstroType.Asteroid,
-            "S" => AstroType.Sun,
+            "1" => AstroType.Planet,
+            "2" => AstroType.Asteroid,
+            "3" => AstroType.Sun,
             _ => AstroType.Planet
+        };
+    }
+
+    private static GameState GetGameStateFromBinding(InputAction.CallbackContext context)
+    {
+        string displayName = context.control?.displayName ?? "";
+        return displayName switch
+        {
+            "F1" => GameState.Edition,
+            "F2" => GameState.Precision,
+            "F3" => GameState.Contemplative,
+            _ => GameState.Edition
         };
     }
 }

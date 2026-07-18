@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-public abstract class CameraController
+public abstract class Camera
 {
     protected class Values
     {
@@ -22,7 +22,7 @@ public abstract class CameraController
     protected readonly CinemachineCamera _camera;
     protected readonly Transform _cameraTransform;
 
-    public CameraController(CinemachineCamera camera)
+    public Camera(CinemachineCamera camera)
     {
         _camera = camera;
         _cameraTransform = camera.transform;

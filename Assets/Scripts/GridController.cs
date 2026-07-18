@@ -9,8 +9,8 @@ public class GridController : MonoBehaviour
     static readonly int[] FrustumFarLoop = { 4, 5, 7, 6 };
 
     [Header("References")]
-    [SerializeField] Camera _camera;
-    [SerializeField] PlayerData _playerData;
+    [SerializeField] UnityEngine.Camera _camera;
+    [SerializeField] LevelData _levelData;
 
     [Header("Fit Settings")]
     [SerializeField, Min(1f)] float _coverageMargin = 1.1f;
@@ -25,50 +25,50 @@ public class GridController : MonoBehaviour
     private Renderer _renderer;
     private GridShaderController _shaderController;
     private readonly Vector3[] _frustumCorners = new Vector3[FrustumCornerCount];
+    private float GetOpacity(GameState state)
+    {
+        return state switch
+        {
+            GameState.Edition => 1f,
+            GameState.Contemplative => 0f,
+            _ => 0.125f
+        };
+    }
+    
     void Awake()
     {
         _transform = transform;
         _renderer = GetComponent<Renderer>();
         CacheGridFrame();
         _shaderController = new GridShaderController(_renderer);
-        if (_camera == null) _camera = Camera.main;
+        if (_camera == null) _camera = UnityEngine.Camera.main;
     }
-
-    void Start()
-    {
-        HandleEditModeToggled();
-    }
-
     void OnEnable()
     {
-        _playerData.IsInEditModeUpdated += HandleEditModeToggled;
+        _levelData.StateEntered += HandleStateEntered;
     }
-
     void OnDisable()
     {
-        _playerData.IsInEditModeUpdated -= HandleEditModeToggled;
+        _levelData.StateEntered -= HandleStateEntered;
     }
-
-    void HandleEditModeToggled()
-    {
-        _shaderController.UpdateOpacity(_playerData.IsInEditMode ? 1f : 0.125f);
-    }
-
     void LateUpdate()
     {
         if (_camera == null) return;
         FitToCameraView();
     }
 
-    void CacheGridFrame()
+    private void HandleStateEntered(GameState state)
+    {
+        _shaderController.UpdateOpacity(GetOpacity(state));
+    }
+    private void CacheGridFrame()
     {
         _planeOrigin = _transform.position;
         _planeRight = _transform.right;
         _planeUp = _transform.up;
         _gridPlane = new Plane(-_transform.forward, _planeOrigin);
     }
-
-    void FitToCameraView()
+    private void FitToCameraView()
     {
         Vector2 min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
         Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
@@ -113,7 +113,7 @@ public class GridController : MonoBehaviour
         _transform.localScale = new Vector3(size.x, size.y, 1f);
     }
 
-    static void FillFrustumWorldCorners(Camera camera, Vector3[] corners)
+    static void FillFrustumWorldCorners(UnityEngine.Camera camera, Vector3[] corners)
     {
         float nearZ = camera.nearClipPlane;
         float farZ = camera.farClipPlane;
@@ -173,7 +173,7 @@ public class GridController : MonoBehaviour
         return true;
     }
 
-    void ExpandPlaneBounds(Vector3 worldHit, ref Vector2 min, ref Vector2 max)
+    private void ExpandPlaneBounds(Vector3 worldHit, ref Vector2 min, ref Vector2 max)
     {
         Vector3 offset = worldHit - _planeOrigin;
         float u = Vector3.Dot(offset, _planeRight);

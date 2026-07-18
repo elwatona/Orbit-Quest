@@ -36,7 +36,7 @@ public class PlayerInputController : MonoBehaviour
     void UpdateCursorWorld()
     {
         Vector2 screenPos = Mouse.current.position.ReadValue();
-        Camera cam = Camera.main;
+        UnityEngine.Camera cam = UnityEngine.Camera.main;
         Ray ray = cam.ScreenPointToRay(screenPos);
         float t = 0f;
         if (Mathf.Abs(ray.direction.y) > 0.0001f)
@@ -61,7 +61,7 @@ public class PlayerInputController : MonoBehaviour
     {
         if(!context.started || !_playerData.CanReadInputs) return;
 
-        Vector3 cursorWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 cursorWorldPosition = UnityEngine.Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
 
         _orb.Impulse(cursorWorldPosition);
@@ -79,8 +79,8 @@ public class PlayerInputController : MonoBehaviour
     {
         Vector2 moveValue = context.ReadValue<Vector2>();
 
-        Vector3 camForward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
-        Vector3 camRight = Vector3.ProjectOnPlane(Camera.main.transform.right, Vector3.up).normalized;
+        Vector3 camForward = Vector3.ProjectOnPlane(UnityEngine.Camera.main.transform.forward, Vector3.up).normalized;
+        Vector3 camRight = Vector3.ProjectOnPlane(UnityEngine.Camera.main.transform.right, Vector3.up).normalized;
 
         _lastMoveValue = camRight * moveValue.x + camForward * moveValue.y;
 
@@ -117,8 +117,8 @@ public class PlayerInputController : MonoBehaviour
         string displayName = context.control?.displayName ?? "";
         return displayName switch
         {
-            "F2" => PanelEnum.Controls,
-            "F3" => PanelEnum.PlayerData,
+            "C" => PanelEnum.Controls,
+            "P" => PanelEnum.PlayerData,
             "F12" => PanelEnum.Console,
             _ => PanelEnum.None
         };

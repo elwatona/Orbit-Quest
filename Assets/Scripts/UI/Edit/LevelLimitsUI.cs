@@ -1,12 +1,12 @@
 using UnityEngine;
 using System;
-public class LevelData : IPanel
+public class LevelLimits : IPanel
 {
     public readonly Vector2Component Max;
     public readonly Vector2Component Min;
     public readonly Limits Limits;
     public GameObject Root { get; private set; }
-    public LevelData(LevelDataDependencies dependencies)
+    public LevelLimits(LevelDataDependencies dependencies)
     {
         Root = dependencies.Root;
         Max = new Vector2Component(dependencies.Max.transform);

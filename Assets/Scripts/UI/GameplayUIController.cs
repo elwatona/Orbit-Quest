@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 public class GameplayUIController : MonoBehaviour
 {
+    [Header("Settings")]
     [SerializeField] PlayerData _playerData;
+    [Header("Dependencies")]
     [SerializeField] PlayerInfoDependencies _playerInfoDependencies;
     [SerializeField] ConsoleDependencies _consoleDependencies;
     [SerializeField] ControlsDependencies _controlsDependencies;
@@ -31,12 +33,12 @@ public class GameplayUIController : MonoBehaviour
     void OnEnable()
     {
         Application.logMessageReceived += _console.Log;
-        UIEventHandler.UIRuntimeEvent += HandleRuntimeUiEvent;
+        UIEventHandler.OnUIEvent += HandleUIEvent;
     }
     void OnDisable()
     {
         Application.logMessageReceived -= _console.Log;
-        UIEventHandler.UIRuntimeEvent -= HandleRuntimeUiEvent;
+        UIEventHandler.OnUIEvent -= HandleUIEvent;
     }
     void Start()
     {
@@ -50,14 +52,43 @@ public class GameplayUIController : MonoBehaviour
         _playerInfo.UpdateInertiaStabilizerText(_playerData.InertiaResource.InertiaStabilizer);
     }
     
-    void HandleRuntimeUiEvent(UIEvent uiEvent)
+    void HandleUIEvent(UIEvent uiEvent)
+    {
+        switch (uiEvent.Kind)
+        {
+            case UIEvent.EventKind.Runtime:
+                HandleRuntimeEvent(uiEvent);
+                break;
+            case UIEvent.EventKind.Panel:
+                HandlePanelEvent(uiEvent);
+                break;
+            case UIEvent.EventKind.StateEntered:
+                HandleStateEntered(uiEvent.GameState);
+                break;
+            case UIEvent.EventKind.StateExited:
+                HandleStateExited(uiEvent.GameState);
+                break;
+        }
+    }
+    void HandleRuntimeEvent(UIEvent uiEvent)
     {
         if (_eventHandlers.TryGetValue(uiEvent.RuntimeUIEvent, out Action handler))
             handler.Invoke();
-        if (uiEvent.PanelEnum != PanelEnum.None)
-            HandlePanelEvent(uiEvent.PanelEnum);
+    }
+    void HandlePanelEvent(UIEvent uiEvent)
+    {
+        HandlePanelEvent(uiEvent.PanelEnum);
         if (uiEvent.Editable != null)
             _astroInfo.Update(uiEvent.Editable);
+    }
+    void HandleStateEntered(GameState gameState)
+    {
+        _playerInfo.Toggle(gameState == GameState.Precision);
+    }
+    void HandleStateExited(GameState gameState)
+    {
+        _playerInfo.Toggle(!(gameState == GameState.Precision));
+        _astroInfo.Toggle(false);
     }
     void HandleSpeedChanged()
     {

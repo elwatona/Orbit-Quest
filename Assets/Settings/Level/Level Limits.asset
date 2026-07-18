@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3506221a197195d40abab19080ac1365, type: 3}
-  m_Name: Test Level Limits
+  m_Name: Level Limits
   m_EditorClassIdentifier: 
   _min: {x: -50, y: -50}
   _max: {x: 50, y: 50}

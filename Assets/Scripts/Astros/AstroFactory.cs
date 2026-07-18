@@ -1,40 +1,40 @@
 using UnityEngine;
 
-/// <summary>
-/// Creates Astro instances from a pooled prefab per type (Sun, Planet, Asteroid) and initializes them with default or provided OrbitData/BodyData.
-/// </summary>
-public class AstroFactory : MonoBehaviour, IAstroFactory
+public class AstroFactory
 {
-    [Header("Prefabs (one per astro type)")]
-    [SerializeField] GameObject _sunPrefab;
-    [SerializeField] GameObject _planetPrefab;
-    [SerializeField] GameObject _asteroidPrefab;
-
-    [Header("Spawn presets (orbit + body); used when Create omits data")]
-    [SerializeField] AstroSpawnPreset _sunSpawnPreset;
-    [SerializeField] AstroSpawnPreset _planetSpawnPreset;
-    [SerializeField] AstroSpawnPreset _asteroidSpawnPreset;
-
-    [Header("Pool Settings")]
-    [SerializeField] int _initialPoolSize = 8;
-    [SerializeField] Transform _poolParent;
-
-    private GameObjectPool _sunPool;
-    private GameObjectPool _planetPool;
-    private GameObjectPool _asteroidPool;
-
-    void Awake()
+    readonly GameObject _sunPrefab;
+    readonly GameObject _planetPrefab;
+    readonly GameObject _asteroidPrefab;
+    readonly int _initialPoolSize;
+    readonly Transform _poolParent;
+    readonly AstroSpawnPreset _sunSpawnPreset;
+    readonly AstroSpawnPreset _planetSpawnPreset;
+    readonly AstroSpawnPreset _asteroidSpawnPreset;
+    readonly GameObjectPool _sunPool;
+    readonly GameObjectPool _planetPool;
+    readonly GameObjectPool _asteroidPool;
+    public AstroFactory(AstroFactoryDependencies dependencies)
     {
-        if (_sunPrefab != null && _sunPrefab.GetComponent<Astro>() == null)
-            Debug.LogWarning("AstroFactory: Sun prefab does not have an Astro component.", this);
-        if (_planetPrefab != null && _planetPrefab.GetComponent<Astro>() == null)
-            Debug.LogWarning("AstroFactory: Planet prefab does not have an Astro component.", this);
-        if (_asteroidPrefab != null && _asteroidPrefab.GetComponent<Astro>() == null)
-            Debug.LogWarning("AstroFactory: Asteroid prefab does not have an Astro component.", this);
+        _sunPrefab = dependencies.SunPrefab;
+        _planetPrefab = dependencies.PlanetPrefab;
+        _asteroidPrefab = dependencies.AsteroidPrefab;
+        _initialPoolSize = dependencies.InitialPoolSize;
+        _poolParent = dependencies.PoolParent;
+        _sunSpawnPreset = dependencies.SunSpawnPreset;
+        _planetSpawnPreset = dependencies.PlanetSpawnPreset;
+        _asteroidSpawnPreset = dependencies.AsteroidSpawnPreset;
 
+        if (_sunPrefab != null && _sunPrefab.GetComponent<Astro>() == null)
+            Debug.LogWarning("AstroFactory: Sun prefab does not have an Astro component.");
+        if (_planetPrefab != null && _planetPrefab.GetComponent<Astro>() == null)
+            Debug.LogWarning("AstroFactory: Planet prefab does not have an Astro component.");
+        if (_asteroidPrefab != null && _asteroidPrefab.GetComponent<Astro>() == null)
+            Debug.LogWarning("AstroFactory: Asteroid prefab does not have an Astro component.");
+    
         _sunPool = _sunPrefab != null ? new GameObjectPool(_sunPrefab, _initialPoolSize, _poolParent) : null;
         _planetPool = _planetPrefab != null ? new GameObjectPool(_planetPrefab, _initialPoolSize, _poolParent) : null;
         _asteroidPool = _asteroidPrefab != null ? new GameObjectPool(_asteroidPrefab, _initialPoolSize, _poolParent) : null;
+
     }
 
     private GameObjectPool GetPool(AstroType type)
@@ -69,7 +69,7 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
         GameObjectPool pool = GetPool(type);
         if (pool == null)
         {
-            Debug.LogError($"AstroFactory: no prefab or pool for type {type}.", this);
+            Debug.LogError($"AstroFactory: no prefab or pool for type {type}.");
             return null;
         }
 
@@ -82,14 +82,14 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
         Astro astro = go.GetComponent<Astro>();
         if (astro == null)
         {
-            Debug.LogError($"AstroFactory: prefab for {type} has no Astro component.", this);
+            Debug.LogError($"AstroFactory: prefab for {type} has no Astro component.");
             return null;
         }
 
         AstroSpawnPreset preset = GetSpawnPreset(type);
         if ((orbitData == null || bodyData == null) && preset == null)
         {
-            Debug.LogError($"AstroFactory: no spawn preset assigned for type {type}.", this);
+            Debug.LogError($"AstroFactory: no spawn preset assigned for type {type}.");
             return null;
         }
 
@@ -105,9 +105,26 @@ public class AstroFactory : MonoBehaviour, IAstroFactory
         GameObjectPool pool = GetPool(astro.Data.type);
         if (pool == null)
         {
-            Debug.LogError($"AstroFactory: no pool for type {astro.Data.type}.", this);
+            Debug.LogError($"AstroFactory: no pool for type {astro.Data.type}.");
             return;
         }
         pool.Release(astro.gameObject);
     }
+}
+[System.Serializable]
+public class AstroFactoryDependencies
+{
+    [Header("Prefabs (one per astro type)")]
+    public GameObject SunPrefab;
+    public GameObject PlanetPrefab;
+    public GameObject AsteroidPrefab;
+
+    [Header("Spawn presets (orbit + body); used when Create omits data")]
+    public AstroSpawnPreset SunSpawnPreset;
+    public AstroSpawnPreset PlanetSpawnPreset;
+    public AstroSpawnPreset AsteroidSpawnPreset;
+
+    [Header("Pool Settings")]
+    public int InitialPoolSize = 8;
+    public Transform PoolParent;
 }

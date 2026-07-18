@@ -1,29 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
-public class LevelManager : MonoBehaviour
+public class AstroManager : MonoBehaviour, ILimitable
 {
-    [SerializeField] Limits _limits;
-    [SerializeField] GameObject[] _levelBoundsGO;
-    [SerializeField] AstroFactory _astroFactory;
-    private List<ILevelBounds> _levelBounds = new List<ILevelBounds>();
+    [SerializeField] AstroFactoryDependencies _astroFactoryDependencies;
+    public Limits Limits { get; private set; }
+    private AstroFactory _astroFactory;
     private List<Astro> _astros = new List<Astro>();
     void Awake()
     {
-        foreach (GameObject levelBoundGO in _levelBoundsGO)
-        {
-            levelBoundGO.TryGetComponent(out ILevelBounds levelBound);
-            if (levelBound != null)
-            {
-                _levelBounds.Add(levelBound);
-            }
-        }
-        foreach (ILevelBounds levelBound in _levelBounds)
-        {
-            levelBound.SetLimits(_limits);
-        }
-        Shader.SetGlobalVector("_Limits_Min", _limits.Min);
-        Shader.SetGlobalVector("_Limits_Max", _limits.Max);
+        _astroFactory = new AstroFactory(_astroFactoryDependencies);
     }
     void OnEnable()
     {
@@ -35,14 +20,15 @@ public class LevelManager : MonoBehaviour
         PresetEvents.OnPresetLoaded -= HandlePresetLoaded;
         PresetEvents.OnPresetSaved -= HandlePresetSaved;
     }
-    void HandlePresetLoaded(PresetData presetData)
+    
+    private void HandlePresetLoaded(PresetData presetData)
     {
         ClearAstros();
         LoadAstros(presetData.AstroPresetEntries);
         UpdateAstrosOrbit(presetData.AstroPresetEntries);
-        _limits.SetLimits(presetData.Limits.min, presetData.Limits.max);
+        Limits.SetLimits(presetData.Limits.min, presetData.Limits.max);
     }
-    void HandlePresetSaved(string presetName)
+    private void HandlePresetSaved(string presetName)
     {
         AstroPresetEntry[] astroPresetEntries = new AstroPresetEntry[_astros.Count];
         for (int i = 0; i < _astros.Count; i++)
@@ -55,7 +41,7 @@ public class LevelManager : MonoBehaviour
             entry.EditableData = editableData;
             astroPresetEntries[i] = entry;
         }
-        PresetData presetData = new PresetData(LimitsData.From(_limits), astroPresetEntries);
+        PresetData presetData = new PresetData(LimitsData.From(Limits), astroPresetEntries);
         PresetFileManager.Write(presetName, presetData);
     }
     private void ClearAstros()
@@ -93,7 +79,7 @@ public class LevelManager : MonoBehaviour
             _astros[i].UpdateOrbiterTargets(targets);
         }
     }
-    static int[] GetTargetIndices(IEditable[] targets, List<Astro> astros)
+    private static int[] GetTargetIndices(IEditable[] targets, List<Astro> astros)
     {
         if (targets == null || targets.Length == 0)
             return System.Array.Empty<int>();
@@ -105,7 +91,7 @@ public class LevelManager : MonoBehaviour
         }
         return indexes;
     }
-    static IEditable[] GetTargetsFromIndexes(int[] targetIndexes, List<Astro> astros)
+    private static IEditable[] GetTargetsFromIndexes(int[] targetIndexes, List<Astro> astros)
     {
         if (targetIndexes == null || targetIndexes.Length == 0)
             return System.Array.Empty<IEditable>();
@@ -117,6 +103,10 @@ public class LevelManager : MonoBehaviour
             targets[i] = index >= 0 && index < astros.Count ? astros[index] : null;
         }
         return targets;
+    }
+    public void SetLimits(Limits limits)
+    {
+        Limits = limits;
     }
     public void CreateAstro(AstroType type, Vector3 position)
     {

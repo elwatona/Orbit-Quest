@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class EditorUIController : MonoBehaviour
 {
-    [SerializeField] PlayerData _playerData;
+    [SerializeField] LevelData _levelData;
     [SerializeField] LevelDataDependencies _levelDataDependencies;
     [SerializeField] PresetListDependencies _presetListDependencies;
     [SerializeField] PresetSaveDependencies _presetSaveDependencies;
@@ -11,7 +11,7 @@ public class EditorUIController : MonoBehaviour
     [SerializeField] AstroEditableDataDependencies _astroEditableDataDependencies;
     [SerializeField] AstroSelectorDependencies _astroSelectorDependencies;
 
-    private LevelData _levelData;
+    private LevelLimits _levelLimitsUI;
     private PresetList _presetList;
     private PresetSave _presetSave;
     private PlayerEditableData _playerEditableData;
@@ -25,7 +25,7 @@ public class EditorUIController : MonoBehaviour
 
     void Awake()
     {
-        _levelData = new LevelData(_levelDataDependencies);
+        _levelLimitsUI = new LevelLimits(_levelDataDependencies);
         _presetList = new PresetList(_presetListDependencies);
         _presetSave = new PresetSave(_presetSaveDependencies);
         _playerEditableData = new PlayerEditableData(_playerEditableDataDependencies);
@@ -33,13 +33,15 @@ public class EditorUIController : MonoBehaviour
         _astroEditableData = new AstroEditableData(_astroEditableDataDependencies);
         _astroSelector = new AstroSelector(_astroSelectorDependencies);
 
-        _panels = new IPanel[] { _levelData, _playerEditableData, _astroMovement, _astroEditableData, _astroSelector };
+        _panels = new IPanel[] { _levelLimitsUI, _playerEditableData, _astroMovement, _astroEditableData, _astroSelector };
     }
     void OnEnable()
     {
         Astro.OnEditableClicked += HandleAstroClicked;
         PresetEvents.OnPresetNamesLoaded += _presetList.LoadPresets;
         PresetEvents.OnPresetSelected += _presetList.HandlePresetSelected;
+        _levelData.StateEntered += HandleStateEntered;
+        _levelData.StateExited += HandleStateExited;
 
         ToggleSelectingTargets(false);
         _playerEditableData.ConnectPlayerDataToUI();
@@ -49,11 +51,33 @@ public class EditorUIController : MonoBehaviour
         Astro.OnEditableClicked -= HandleAstroClicked;
         PresetEvents.OnPresetNamesLoaded -= _presetList.LoadPresets;
         PresetEvents.OnPresetSelected -= _presetList.HandlePresetSelected;
+        _levelData.StateEntered -= HandleStateEntered;
+        _levelData.StateExited -= HandleStateExited;
     }
 
+    private void HandleStateEntered(GameState gameState)
+    {
+        bool isEdition = gameState == GameState.Edition;
+        _playerEditableData.Toggle(isEdition);
+        _levelLimitsUI.Toggle(isEdition);
+        _astroMovement.Toggle(isEdition);
+        _astroEditableData.Toggle(isEdition);
+        _astroSelector.Toggle(isEdition);
+    }
+    private void HandleStateExited(GameState gameState)
+    {
+        if(gameState != GameState.Edition) return;
+        _playerEditableData.Toggle(false);
+        _levelLimitsUI.Toggle(false);
+        _astroMovement.Toggle(false);
+        _astroEditableData.Toggle(false);
+        _astroSelector.Toggle(false);
+        _presetList.Toggle(false);
+        _presetSave.Toggle(false);
+    }
     private void HandleAstroClicked(IEditable editable)
     {
-        if(!_playerData.IsInEditMode) return;
+        if(!_levelData.IsInEditMode) return;
         if(!_isSelectingTargets) AstroSelected(editable);
         else TargetClicked(editable);
     }

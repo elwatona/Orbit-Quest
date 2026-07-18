@@ -9,6 +9,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 
     [Header("Settings")]
     [SerializeField] PlayerData _playerData;
+    [SerializeField] LevelData _levelData;
     [SerializeField] OrbitData _orbitData;
     [SerializeField] BodyData _bodyData;
     [SerializeField] float _rotationSpeed = 5f;
@@ -132,7 +133,7 @@ public class Astro : MonoBehaviour, IPointerDownHandler, IEditable, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        if(!_playerData.IsInEditMode || eventData.button != PointerEventData.InputButton.Left) return;
+        if(!_levelData.IsInEditMode || eventData.button != PointerEventData.InputButton.Left) return;
 
         Vector3 desiredPosition = _playerData.CursorWorld;
         desiredPosition.y = 0;

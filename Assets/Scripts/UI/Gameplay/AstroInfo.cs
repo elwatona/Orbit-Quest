@@ -28,7 +28,7 @@ public class AstroInfo : IPanel
     }
     private Vector3 GetDesiredPosition(IEditable editable)
     {
-        Vector3 screenPosition = Camera.main.WorldToScreenPoint(editable.transform.position);
+        Vector3 screenPosition = UnityEngine.Camera.main.WorldToScreenPoint(editable.transform.position);
         RectTransform.pivot = GetDesiredPivot(screenPosition);
         return screenPosition;
     }

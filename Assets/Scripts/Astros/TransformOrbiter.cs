@@ -26,7 +26,6 @@ public class TransformOrbiter : MonoBehaviour
     private float _totalPathLength;
     private float _pathParameter;
     private bool _radiusInitializedFromDistance;
-    private bool _orbitStateDirty = true;
     private IEditable[] _editableTargets = Array.Empty<IEditable>();
 
     const int KeplerIterations = 5;
@@ -52,7 +51,6 @@ public class TransformOrbiter : MonoBehaviour
     {
         IEditable[] editableTargets = new IEditable[_targets.Length];
         CleanNullTargets();
-        _orbitStateDirty = true;
         if (!HasValidTargets())
             return;
         
@@ -82,7 +80,6 @@ public class TransformOrbiter : MonoBehaviour
     void OnDisable()
     {
         _radiusInitializedFromDistance = false;
-        _orbitStateDirty = true;
     }
 
     void InitializeRadiusFromDistance()

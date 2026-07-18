@@ -1,20 +1,20 @@
-public class GameStateController : IController
+using System;
+public class GameStateController
 {
-    public LevelSignals LevelSignals { get; }
     public GameState CurrentState { get; private set; }
-    public GameStateController(LevelSignals levelSignals, GameState initialState)
+    private event Action<GameState> _stateExited, _stateEntered;
+    public GameStateController(GameState initialState, Action<GameState> onStateExited, Action<GameState> onStateEntered)
     {
-        LevelSignals = levelSignals;
-        TrySetState(initialState);
+        CurrentState = initialState;
+        _stateExited = onStateExited;
+        _stateEntered = onStateEntered;
     }
-    public bool TrySetState(GameState next)
+    public void SetState(GameState state)
     {
-        if (!CanTransitionTo(CurrentState, next)) return false;
-
-        LevelSignals.RaiseStateExited(CurrentState);
-        CurrentState = next;
-        LevelSignals.RaiseStateEntered(CurrentState);
-        return true;
+        if (!CanTransitionTo(CurrentState, state)) return;
+        _stateExited?.Invoke(CurrentState);
+        CurrentState = state;
+        _stateEntered?.Invoke(CurrentState);
     }
     static bool CanTransitionTo(GameState from, GameState next)
     {

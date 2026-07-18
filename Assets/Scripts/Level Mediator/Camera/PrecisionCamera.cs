@@ -1,10 +1,10 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-public class CenitalCamera : CameraController
+public class PrecisionCamera : Camera
 {
     private CinemachineOrbitalFollow _follow;
-    public CenitalCamera(CinemachineCamera camera) : base(camera)
+    public PrecisionCamera(CinemachineCamera camera) : base(camera)
     {
         _follow = _cameraTransform.GetComponent<CinemachineOrbitalFollow>();
         _zoom = new Values(10);

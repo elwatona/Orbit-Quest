@@ -1,12 +1,11 @@
 using UnityEngine;
 using Unity.Cinemachine;
 
-public class IsometricCamera : CameraController
+public class EditorCamera : Camera
 {
-    private Vector2 _zoomLimits;
-    public IsometricCamera(CinemachineCamera camera) : base(camera)
+    readonly Vector2 _zoomLimits = new Vector2(10, 100);
+    public EditorCamera(CinemachineCamera camera) : base(camera)
     {
-        _zoomLimits = new Vector2(10, 100);
         _zoom = new Values(10);
         _rotation = new Values(10);
     }

@@ -78,7 +78,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Developer Mode",
+                    "name": "Game State",
                     "type": "Button",
                     "id": "a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
                     "expectedControlType": "",
@@ -221,7 +221,7 @@
                 {
                     "name": "",
                     "id": "a1b2c3d4-0001-4000-8000-000000000001",
-                    "path": "<Keyboard>/p",
+                    "path": "<Keyboard>/1",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -232,7 +232,7 @@
                 {
                     "name": "",
                     "id": "a1b2c3d4-0002-4000-8000-000000000002",
-                    "path": "<Keyboard>/s",
+                    "path": "<Keyboard>/2",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -243,7 +243,7 @@
                 {
                     "name": "",
                     "id": "a1b2c3d4-0003-4000-8000-000000000003",
-                    "path": "<Keyboard>/a",
+                    "path": "<Keyboard>/3",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -298,7 +298,7 @@
                 {
                     "name": "",
                     "id": "899b19a8-0dc8-4ad4-86b9-3d47183d7aae",
-                    "path": "<Keyboard>/f2",
+                    "path": "<Keyboard>/c",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
@@ -309,10 +309,10 @@
                 {
                     "name": "",
                     "id": "ea858098-bd70-4031-a482-b208f9108e9b",
-                    "path": "<Keyboard>/f2",
+                    "path": "<Keyboard>/p",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";Keyboard&Mouse",
+                    "groups": ";Keyboard&Mouse;Gamepad",
                     "action": "Toggle Inspectors",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -390,7 +390,29 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Developer Mode",
+                    "action": "Game State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7b3ca4e2-11bc-439c-8ee5-57312f623cb5",
+                    "path": "<Keyboard>/f2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Game State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7edb150b-5fcb-4472-90a0-7ced132597db",
+                    "path": "<Keyboard>/f3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Game State",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

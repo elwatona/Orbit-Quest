@@ -1,36 +1,32 @@
-public class CameraManager : IManager
+using System;
+using Unity.Cinemachine;
+public class CameraManager
 {
+    readonly LevelData _levelData;
+    readonly EditorCamera _editorCamera;
+    readonly PrecisionCamera _precisionCamera;
+    readonly PrecisionCamera _contemplativeCamera;
 
-    public enum Type
-    {
-        Isometric,
-        Cenital
-    }
-    public LevelSignals LevelSignals { get; }
-    private CameraManagerDependencies _dependencies;
-    Type _currentCameraType;
-    private IsometricCamera _isometricController;
-    private CenitalCamera _cenitalController;
-    private float _inputRotation;
+    private float _rotationInput;
 
     public CameraManager(CameraManagerDependencies dependencies)
     {
-        _dependencies = dependencies;
-        _isometricController = new IsometricCamera(_dependencies.IsometricCamera);
-        _cenitalController = new CenitalCamera(_dependencies.CenitalCamera);
-        
-        _currentCameraType = _dependencies.PlayerData.IsInEditMode ? Type.Isometric : Type.Cenital;
-        UpdateCameras(_currentCameraType);
+        _levelData = dependencies.LevelData;
+        _editorCamera = new EditorCamera(dependencies.EditorCamera);
+        _precisionCamera = new PrecisionCamera(dependencies.PrecisionCamera);
+        _contemplativeCamera = new PrecisionCamera(dependencies.ContemplativeCamera);
     }
     public void Subscribe()
     {
-        CameraInputController.OnCameraInput += OnCameraInput;
+        CameraInputController.CameraInput += OnCameraInput;
+        _levelData.StateEntered += UpdateCameras;
     }
     public void Unsubscribe()
     {
-        CameraInputController.OnCameraInput -= OnCameraInput;
+        CameraInputController.CameraInput -= OnCameraInput;
+        _levelData.StateEntered -= UpdateCameras;
     }
-    public void Update() => OnRotate(_inputRotation);
+    public void Update() => OnRotate(_rotationInput);
     private void OnCameraInput(CameraInputController.InputType inputType, float value)
     {
         switch(inputType)
@@ -39,43 +35,41 @@ public class CameraManager : IManager
                 OnZoom(value);
                 break;
             case CameraInputController.InputType.Rotate:
-                _inputRotation = value;
-                break;
-            case CameraInputController.InputType.SwitchCameraType:
-                ToggleCameraType();
+                _rotationInput = value;
                 break;
         }
     }
-    public void ToggleCameraType()
-    {
-        _currentCameraType = _currentCameraType == Type.Isometric ? Type.Cenital : Type.Isometric;
-        UpdateCameras(_currentCameraType);
-    }
     private void OnZoom(float delta)
     {
-        switch(_currentCameraType)
+        switch(_levelData.CurrentState)
         {
-            case Type.Isometric:
-                _isometricController.Zoom(delta);
-                break;
-            default:
+            case GameState.Edition:
+                _editorCamera.Zoom(delta);
                 break;
         }
     }
     private void OnRotate(float delta)
     {
-        switch(_currentCameraType)
+        switch(_levelData.CurrentState)
         {
-            case Type.Isometric:
-                _isometricController.Rotate(delta);
-                break;
-            default:
+            case GameState.Edition:
+                _editorCamera.Rotate(delta);
                 break;
         }
     }
-    private void UpdateCameras(Type cameraType)
+    private void UpdateCameras(GameState cameraType)
     {
-        _isometricController.SetActive(cameraType == Type.Isometric);
-        _cenitalController.SetActive(cameraType == Type.Cenital);
+        _editorCamera.SetActive(cameraType == GameState.Edition);
+        _precisionCamera.SetActive(cameraType == GameState.Precision);
+        _contemplativeCamera.SetActive(cameraType == GameState.Contemplative);
     }
+}
+
+[Serializable]
+public class CameraManagerDependencies
+{
+    public CinemachineCamera EditorCamera;
+    public CinemachineCamera PrecisionCamera;
+    public CinemachineCamera ContemplativeCamera;
+    public LevelData LevelData;
 }
