@@ -26,6 +26,15 @@ public class ScrollComponent
         GameObject itemObject = GameObject.Instantiate(_prefab, _contentTransform);
         itemObject.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = item;
     }
+    public T AddItem<T>(Func<Transform, T> create) where T : IScrollItem
+    {
+        return AddItem(_prefab, create);
+    }
+    public T AddItem<T>(GameObject prefab, Func<Transform, T> create) where T : IScrollItem
+    {
+        GameObject itemObject = GameObject.Instantiate(prefab, _contentTransform);
+        return create(itemObject.transform);
+    }
     public void AddItems(string[] items)
     {
         foreach (string item in items) AddItem(item);

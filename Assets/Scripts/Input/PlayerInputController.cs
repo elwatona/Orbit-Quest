@@ -117,12 +117,13 @@ public class PlayerInputController : MonoBehaviour
     }
     private static PanelEnum GetPanelIndexFromBinding(InputAction.CallbackContext context)
     {
-        string displayName = context.control?.displayName ?? "";
-        return displayName switch
+        if (context.action == null || context.control == null) return PanelEnum.None;
+
+        return context.action.GetBindingIndexForControl(context.control) switch
         {
-            "C" => PanelEnum.Controls,
-            "P" => PanelEnum.PlayerData,
-            "F12" => PanelEnum.Console,
+            0 => PanelEnum.Controls,
+            1 => PanelEnum.PlayerData,
+            2 => PanelEnum.Console,
             _ => PanelEnum.None
         };
     }

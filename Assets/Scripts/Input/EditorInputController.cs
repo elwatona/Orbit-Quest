@@ -36,25 +36,29 @@ public class EditorInputController : MonoBehaviour
 
     private static AstroType GetAstroTypeFromBinding(InputAction.CallbackContext context)
     {
-        string displayName = context.control?.displayName ?? "";
-        return displayName switch
+        return GetBindingIndex(context) switch
         {
-            "1" => AstroType.Planet,
-            "2" => AstroType.Asteroid,
-            "3" => AstroType.Sun,
+            0 => AstroType.Planet,
+            1 => AstroType.Asteroid,
+            2 => AstroType.Sun,
             _ => AstroType.Planet
         };
     }
 
     private static GameState GetGameStateFromBinding(InputAction.CallbackContext context)
     {
-        string displayName = context.control?.displayName ?? "";
-        return displayName switch
+        return GetBindingIndex(context) switch
         {
-            "F1" => GameState.Edition,
-            "F2" => GameState.Precision,
-            "F3" => GameState.Contemplative,
+            0 => GameState.Edition,
+            1 => GameState.Precision,
+            2 => GameState.Contemplative,
             _ => GameState.Edition
         };
+    }
+
+    private static int GetBindingIndex(InputAction.CallbackContext context)
+    {
+        if (context.action == null || context.control == null) return -1;
+        return context.action.GetBindingIndexForControl(context.control);
     }
 }
