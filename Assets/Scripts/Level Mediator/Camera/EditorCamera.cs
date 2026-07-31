@@ -3,7 +3,8 @@ using Unity.Cinemachine;
 
 public class EditorCamera : Camera
 {
-    public EditorCamera(CinemachineCamera camera, SharedCameraZoom sharedZoom) : base(camera, sharedZoom)
+    public EditorCamera(CinemachineCamera camera, SharedCameraZoom sharedZoom, SharedCameraPose sharedPose)
+        : base(camera, sharedZoom, sharedPose)
     {
     }
 

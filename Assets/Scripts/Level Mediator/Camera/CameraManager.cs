@@ -13,9 +13,10 @@ public class CameraManager
     {
         _levelData = dependencies.LevelData;
         var sharedZoom = new SharedCameraZoom();
-        _editorCamera = new EditorCamera(dependencies.EditorCamera, sharedZoom);
-        _precisionCamera = new PrecisionCamera(dependencies.PrecisionCamera, sharedZoom);
-        _contemplativeCamera = new PrecisionCamera(dependencies.ContemplativeCamera, sharedZoom);
+        var sharedPose = new SharedCameraPose();
+        _editorCamera = new EditorCamera(dependencies.EditorCamera, sharedZoom, sharedPose);
+        _precisionCamera = new PrecisionCamera(dependencies.PrecisionCamera, sharedZoom, sharedPose);
+        _contemplativeCamera = new PrecisionCamera(dependencies.ContemplativeCamera, sharedZoom, sharedPose);
     }
     public void Subscribe()
     {
@@ -66,9 +67,22 @@ public class CameraManager
     }
     private void UpdateCameras(GameState cameraType)
     {
-        _editorCamera.SetActive(cameraType == GameState.Edition);
-        _precisionCamera.SetActive(cameraType == GameState.Precision);
-        _contemplativeCamera.SetActive(cameraType == GameState.Contemplative);
+        _editorCamera.SetActive(false);
+        _precisionCamera.SetActive(false);
+        _contemplativeCamera.SetActive(false);
+
+        switch (cameraType)
+        {
+            case GameState.Edition:
+                _editorCamera.SetActive(true);
+                break;
+            case GameState.Precision:
+                _precisionCamera.SetActive(true);
+                break;
+            case GameState.Contemplative:
+                _contemplativeCamera.SetActive(true);
+                break;
+        }
     }
 }
 

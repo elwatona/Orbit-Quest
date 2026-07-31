@@ -5,7 +5,8 @@ public class PrecisionCamera : Camera
 {
     private CinemachineOrbitalFollow _follow;
 
-    public PrecisionCamera(CinemachineCamera camera, SharedCameraZoom sharedZoom) : base(camera, sharedZoom)
+    public PrecisionCamera(CinemachineCamera camera, SharedCameraZoom sharedZoom, SharedCameraPose sharedPose)
+        : base(camera, sharedZoom, sharedPose)
     {
         _follow = _cameraTransform.GetComponent<CinemachineOrbitalFollow>();
     }
@@ -47,31 +48,24 @@ public class PrecisionCamera : Camera
 
     public override void Rotate(float delta)
     {
-        _rotation.Set(delta);
-
-        _follow.HorizontalAxis.Value = Mathf.Lerp(
-            _follow.HorizontalAxis.Range.x,
-            _follow.HorizontalAxis.Range.y,
-            _rotation.lerp);
+        _follow.HorizontalAxis.Value += delta;
     }
 
-    protected override void ApplySharedZoom()
+    protected override void ApplySharedPose()
     {
-        base.ApplySharedZoom();
+        base.ApplySharedPose();
+        SyncZoomFromVerticalAxis();
+    }
 
-        const float epsilon = 0.05f;
-        bool orthoAtMin = _sharedZoom.OrthographicSize <= _sharedZoom.Limits.x + epsilon;
+    void SyncZoomFromVerticalAxis()
+    {
+        float range = _follow.VerticalAxis.Range.y - _follow.VerticalAxis.Range.x;
+        if (range <= 0f) return;
 
-        if (orthoAtMin)
-        {
-            _follow.VerticalAxis.Value = Mathf.Lerp(
-                _follow.VerticalAxis.Range.x,
-                _follow.VerticalAxis.Range.y,
-                _zoom.lerp);
-        }
-        else
-        {
-            _follow.VerticalAxis.Value = _follow.VerticalAxis.Range.y;
-        }
+        float t = Mathf.InverseLerp(
+            _follow.VerticalAxis.Range.x,
+            _follow.VerticalAxis.Range.y,
+            _follow.VerticalAxis.Value);
+        _zoom.SetAbsolute(t * _zoom.maxStep);
     }
 }

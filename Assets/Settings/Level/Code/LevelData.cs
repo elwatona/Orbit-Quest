@@ -17,6 +17,14 @@ public class LevelData : ScriptableObject
         }
     }
     public bool IsInEditMode => CurrentState == GameState.Edition;
+    public GameState LastPlayMode
+    {
+        get
+        {
+            EnsureInitialized();
+            return _gameStateController.LastPlayMode;
+        }
+    }
     public void SetState(GameState state)
     {
         EnsureInitialized();

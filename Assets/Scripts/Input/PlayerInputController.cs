@@ -16,10 +16,35 @@ public class PlayerInputController : MonoBehaviour
     private bool _canReadInputs => _levelData.CurrentState == GameState.Precision && _playerData.IsAlive;
 
     Vector3 _lastMoveValue;
+    InputAction _forceRespawnAction;
 
     void Awake()
     {
         CacheReferences();
+    }
+
+    void OnEnable()
+    {
+        // PlayerInput UnityEvent for Force Respawn does not invoke at runtime; bind directly.
+        var playerInput = GetComponent<PlayerInput>();
+        _forceRespawnAction = playerInput != null
+            ? playerInput.actions?.FindAction("Force Respawn")
+            : null;
+        if (_forceRespawnAction != null)
+        {
+            _forceRespawnAction.started += ForceRespawn;
+            _forceRespawnAction.performed += ForceRespawn;
+            _forceRespawnAction.canceled += ForceRespawn;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (_forceRespawnAction == null) return;
+        _forceRespawnAction.started -= ForceRespawn;
+        _forceRespawnAction.performed -= ForceRespawn;
+        _forceRespawnAction.canceled -= ForceRespawn;
+        _forceRespawnAction = null;
     }
 
     void Update()
@@ -55,14 +80,14 @@ public class PlayerInputController : MonoBehaviour
     public void Aim(InputAction.CallbackContext context)
     {
         if (!_canReadInputs) return;
-        if (context.started)
+        if (context.performed)
             _orb.SetAiming(true);
         else if (context.canceled)
             _orb.SetAiming(false);
     }
     public void Impulse(InputAction.CallbackContext context)
     {
-        if(!context.started || !_canReadInputs) return;
+        if(!context.performed || !_canReadInputs) return;
 
         Vector3 cursorWorldPosition = UnityEngine.Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cursorWorldPosition.z = 0;
@@ -73,7 +98,7 @@ public class PlayerInputController : MonoBehaviour
     /// <summary>Called by the Inertia Stabilizer input action (Left Ctrl). Toggles inertia stabilizer on/off.</summary>
     public void ToggleInertiaStabilizer(InputAction.CallbackContext context)
     {
-        if (!context.started || !_canReadInputs) return;
+        if (!context.performed || !_canReadInputs) return;
         _orb.ToggleInertiaStabilizer();
     }
 
@@ -95,36 +120,40 @@ public class PlayerInputController : MonoBehaviour
 
     public void Respawn(InputAction.CallbackContext context)
     {
-        if (!context.started) return;
-        if (context.control.device == Keyboard.current && Keyboard.current.altKey.isPressed) 
-            _orbGameObject.SetActive(false);
+        if (!context.performed) return;
         if (!_orbGameObject.activeSelf)
-        {
-            _lastMoveValue = Vector3.zero;
-            _orbGameObject.transform.position = _spawnPoint.position;
-            _orbGameObject.SetActive(true);
-        }
+            PerformRespawn();
     }
 
-    public void TogglePanel(InputAction.CallbackContext context)
+    public void ForceRespawn(InputAction.CallbackContext context)
     {
-        if (!context.started) return;
-        PanelEnum panel = GetPanelIndexFromBinding(context);
-
-        if (panel == PanelEnum.None) return;
-        
-        OnPanelToggled?.Invoke(panel);
+        if (!context.performed) return;
+        _orbGameObject.SetActive(false);
+        PerformRespawn();
     }
-    private static PanelEnum GetPanelIndexFromBinding(InputAction.CallbackContext context)
-    {
-        if (context.action == null || context.control == null) return PanelEnum.None;
 
-        return context.action.GetBindingIndexForControl(context.control) switch
-        {
-            0 => PanelEnum.Controls,
-            1 => PanelEnum.PlayerData,
-            2 => PanelEnum.Console,
-            _ => PanelEnum.None
-        };
+    void PerformRespawn()
+    {
+        _lastMoveValue = Vector3.zero;
+        _orbGameObject.transform.position = _spawnPoint.position;
+        _orbGameObject.SetActive(true);
+    }
+
+    public void ToggleControls(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        OnPanelToggled?.Invoke(PanelEnum.Controls);
+    }
+
+    public void TogglePlayerData(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        OnPanelToggled?.Invoke(PanelEnum.PlayerData);
+    }
+
+    public void ToggleConsole(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        OnPanelToggled?.Invoke(PanelEnum.Console);
     }
 }

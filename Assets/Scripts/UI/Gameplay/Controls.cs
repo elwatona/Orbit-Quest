@@ -69,9 +69,15 @@ public class Controls : IPanel
         string actionName,
         int bindingIndex,
         Action<InputBindingInfo> onComplete = null,
-        Action onCancel = null)
+        Action onCancel = null,
+        Action<string> onPreview = null)
     {
-        _bindingsService.StartRebind(actionName, bindingIndex, onComplete, onCancel);
+        _bindingsService.StartRebind(
+            actionName,
+            bindingIndex,
+            onComplete,
+            onCancel,
+            onPreview: onPreview);
     }
 
     public void ResetBinding(string actionName, int bindingIndex)
@@ -104,18 +110,108 @@ public class Controls : IPanel
                 return header;
             });
 
-            foreach (InputBindingInfo info in bindings)
+            List<BindingRowEntry> entries = BuildRowEntries(bindings);
+            foreach (BindingRowEntry entry in entries)
             {
                 BindingRow row = _scroll.AddItem(t => new BindingRow(t));
+                BindingPressType pressType = _bindingsService.GetPressType(
+                    entry.Primary.ActionName,
+                    entry.Primary.BindingIndex,
+                    entry.Primary.MapName);
+
                 row.Bind(
-                    info,
-                    ResolveTitle(info),
-                    ResolveKeyDisplay(info),
-                    () => OnRebind(row),
-                    () => OnReset(row));
+                    entry.Primary,
+                    entry.Alt,
+                    ResolveTitle(entry.Primary),
+                    ResolveKeyDisplay(entry.Primary),
+                    entry.Alt.HasValue ? ResolveKeyDisplay(entry.Alt.Value) : "Not Set",
+                    () => OnRebind(row, alt: false),
+                    () => OnRebind(row, alt: true),
+                    () => OnReset(row),
+                    pressType,
+                    showPressType: true,
+                    showAlt: true,
+                    value => OnPressTypeChanged(row, value));
                 _rows.Add(row);
             }
         }
+    }
+
+    static List<BindingRowEntry> BuildRowEntries(List<InputBindingInfo> bindings)
+    {
+        var entries = new List<BindingRowEntry>();
+        InputBindingInfo? pendingPrimary = null;
+        string pendingKey = null;
+        var pendingParts = new Dictionary<string, InputBindingInfo>(StringComparer.Ordinal);
+
+        foreach (InputBindingInfo info in bindings)
+        {
+            if (info.IsPartOfComposite && !info.IsModifierChord)
+            {
+                FlushPendingPrimary(entries, ref pendingPrimary, ref pendingKey);
+
+                string partKey = info.MapName + "/" + info.ActionName + "/" + (info.PartName ?? string.Empty);
+                if (pendingParts.TryGetValue(partKey, out InputBindingInfo primaryPart))
+                {
+                    entries.Add(new BindingRowEntry(primaryPart, info));
+                    pendingParts.Remove(partKey);
+                }
+                else
+                {
+                    pendingParts[partKey] = info;
+                }
+                continue;
+            }
+
+            string key = info.MapName + "/" + info.ActionName;
+            if (!pendingPrimary.HasValue)
+            {
+                pendingPrimary = info;
+                pendingKey = key;
+                continue;
+            }
+
+            if (pendingKey == key)
+            {
+                entries.Add(new BindingRowEntry(pendingPrimary.Value, info));
+                pendingPrimary = null;
+                pendingKey = null;
+                continue;
+            }
+
+            FlushPendingPrimary(entries, ref pendingPrimary, ref pendingKey);
+            pendingPrimary = info;
+            pendingKey = key;
+        }
+
+        FlushPendingPrimary(entries, ref pendingPrimary, ref pendingKey);
+        foreach (KeyValuePair<string, InputBindingInfo> pair in pendingParts)
+            entries.Add(new BindingRowEntry(pair.Value, null));
+
+        return entries;
+    }
+
+    static void FlushPendingPrimary(
+        List<BindingRowEntry> entries,
+        ref InputBindingInfo? pendingPrimary,
+        ref string pendingKey)
+    {
+        if (!pendingPrimary.HasValue) return;
+        entries.Add(new BindingRowEntry(pendingPrimary.Value, null));
+        pendingPrimary = null;
+        pendingKey = null;
+    }
+
+    readonly struct BindingRowEntry
+    {
+        public BindingRowEntry(InputBindingInfo primary, InputBindingInfo? alt)
+        {
+            Primary = primary;
+            Alt = alt;
+        }
+
+        public InputBindingInfo Primary { get; }
+        public InputBindingInfo? Alt { get; }
     }
 
     static List<InputBindingInfo> FilterByCategory(
@@ -138,96 +234,105 @@ public class Controls : IPanel
             case "Zoom":
             case "Rotate":
                 return ControlsCategory.Camera;
-            case "Instantiate Astro":
+            case "Spawn Planet":
+            case "Spawn Asteroid":
+            case "Spawn Sun":
             case "Set Spawn Point":
-            case "Toggle Inspectors":
-            case "Game State":
+            case "Enter Edition":
+            case "Toggle Play Mode":
+            case "Toggle Controls":
+            case "Toggle Player Data":
+            case "Toggle Console":
                 return ControlsCategory.Editor;
             default:
                 return ControlsCategory.Orb;
         }
     }
 
-    void OnRebind(BindingRow row)
+    void OnRebind(BindingRow row, bool alt)
     {
-        row.SetListening(true);
+        if (alt && !row.AltInfo.HasValue)
+            return;
+
+        InputBindingInfo info = alt
+            ? row.AltInfo.Value
+            : row.Info;
+
+        row.SetListening(true, alt);
         BeginRebind(
-            row.Info.ActionName,
-            row.Info.BindingIndex,
-            onComplete: info => row.SetKey(ResolveKeyDisplay(info)),
-            onCancel: () => row.SetListening(false));
+            info.ActionName,
+            info.BindingIndex,
+            onComplete: _ => row.SetListening(false, alt),
+            onCancel: () => row.SetListening(false, alt),
+            onPreview: preview => row.SetListeningPreview(preview, alt));
     }
 
     void OnReset(BindingRow row)
     {
-        ResetBinding(row.Info.ActionName, row.Info.BindingIndex);
+        _bindingsService.ResetToDefault(row.Info.ActionName, row.Info.BindingIndex, row.Info.MapName);
+        if (row.AltInfo.HasValue)
+        {
+            InputBindingInfo alt = row.AltInfo.Value;
+            _bindingsService.ResetToDefault(alt.ActionName, alt.BindingIndex, alt.MapName);
+        }
+        _bindingsService.Save();
+    }
+
+    void OnPressTypeChanged(BindingRow row, int value)
+    {
+        if (value < 0 || value > (int)BindingPressType.Release) return;
+        BindingPressType type = (BindingPressType)value;
+
+        bool hasAlt = row.AltInfo.HasValue;
+        _bindingsService.SetPressType(
+            row.Info.ActionName,
+            row.Info.BindingIndex,
+            type,
+            row.Info.MapName,
+            persist: !hasAlt);
+
+        if (hasAlt)
+        {
+            InputBindingInfo alt = row.AltInfo.Value;
+            _bindingsService.SetPressType(
+                alt.ActionName,
+                alt.BindingIndex,
+                type,
+                alt.MapName,
+                persist: true);
+        }
     }
 
     string ResolveTitle(InputBindingInfo info)
     {
         switch (info.ActionName)
         {
-            case "Game State":
-                return info.BindingIndex switch
-                {
-                    0 => "Edition",
-                    1 => "Precision",
-                    2 => "Contemplative",
-                    _ => info.ActionName
-                };
-            case "Instantiate Astro":
-                return info.BindingIndex switch
-                {
-                    0 => "Planet",
-                    1 => "Asteroid",
-                    2 => "Sun",
-                    _ => info.ActionName
-                };
-            case "Toggle Inspectors":
-                return info.BindingIndex switch
-                {
-                    0 => "Controls",
-                    1 => "Player Data",
-                    2 => "Console",
-                    _ => info.ActionName
-                };
             case "Move":
                 return ResolveMoveTitle(info);
             case "Zoom":
                 return ResolveZoomTitle(info);
             case "Rotate":
                 return ResolveRotateTitle(info);
-            default:
-                return info.ActionName;
         }
+
+        return info.ActionName;
     }
 
     string ResolveKeyDisplay(InputBindingInfo info)
     {
+        if (info.IsModifierChord)
+            return _bindingsService.GetDisplayString(info.ActionName, info.BindingIndex, info.MapName);
+
         string path = GetBindingPath(info);
-        if (!string.IsNullOrEmpty(path))
-        {
-            if (path.IndexOf("scroll/up", StringComparison.OrdinalIgnoreCase) >= 0)
-                return "Scroll Up";
-            if (path.IndexOf("scroll/down", StringComparison.OrdinalIgnoreCase) >= 0)
-                return "Scroll Down";
-        }
+        if (string.IsNullOrEmpty(path))
+            return "Not Set";
 
-        string display = info.DisplayName ?? string.Empty;
-        if (display.IndexOf("Scroll Up", StringComparison.OrdinalIgnoreCase) >= 0
-            || display.IndexOf("scroll/up", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "Scroll Up";
-        if (display.IndexOf("Scroll Down", StringComparison.OrdinalIgnoreCase) >= 0
-            || display.IndexOf("scroll/down", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "Scroll Down";
-
-        return info.DisplayName;
+        return InputRebind.FormatKeyDisplay(path);
     }
 
     string ResolveMoveTitle(InputBindingInfo info)
     {
-        string partName = GetBindingPartName(info);
-        return partName switch
+        return (info.PartName ?? GetBindingPartName(info)) switch
         {
             "up" => "Forward",
             "down" => "Back",
@@ -239,8 +344,7 @@ public class Controls : IPanel
 
     string ResolveZoomTitle(InputBindingInfo info)
     {
-        string partName = GetBindingPartName(info);
-        return partName switch
+        return (info.PartName ?? GetBindingPartName(info)) switch
         {
             "positive" => "Zoom In",
             "negative" => "Zoom Out",
@@ -250,8 +354,7 @@ public class Controls : IPanel
 
     string ResolveRotateTitle(InputBindingInfo info)
     {
-        string partName = GetBindingPartName(info);
-        return partName switch
+        return (info.PartName ?? GetBindingPartName(info)) switch
         {
             "positive" => "Rotate Right",
             "negative" => "Rotate Left",

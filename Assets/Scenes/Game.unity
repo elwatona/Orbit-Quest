@@ -14009,7 +14009,7 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121076}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
         m_MethodName: Respawn
         m_Mode: 0
         m_Arguments:
@@ -14021,12 +14021,16 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 9725c465-d815-42d2-893b-9c7a5a7b1345
-    m_ActionName: 'Player/Retry[/Keyboard/r]'
+    m_ActionName: 'Player/Respawn[/Keyboard/r]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 9725c465-d815-42d2-893b-9c7a5a7b1346
+    m_ActionName: 'Player/Force Respawn[/Keyboard/alt,/Keyboard/r]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121081}
         m_TargetAssemblyTypeName: EditorInputController, Assembly-CSharp
-        m_MethodName: CreateAstro
+        m_MethodName: SpawnPlanet
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14037,12 +14041,44 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: f4e3b492-040c-4c11-a5c6-8809f00be40c
-    m_ActionName: 'Player/InstantiateMoon[/Mouse/rightButton]'
+    m_ActionName: 'Player/Spawn Planet[/Keyboard/1]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1681121081}
+        m_TargetAssemblyTypeName: EditorInputController, Assembly-CSharp
+        m_MethodName: SpawnAsteroid
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a1b2c3d4-aaaa-4c11-a5c6-8809f00be401
+    m_ActionName: 'Player/Spawn Asteroid[/Keyboard/2]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1681121081}
+        m_TargetAssemblyTypeName: EditorInputController, Assembly-CSharp
+        m_MethodName: SpawnSun
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a1b2c3d4-bbbb-4c11-a5c6-8809f00be402
+    m_ActionName: 'Player/Spawn Sun[/Keyboard/3]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121076}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: TogglePanel
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
+        m_MethodName: ToggleControls
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14053,11 +14089,43 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: bf71c69c-d8ee-40c9-b20d-57e625b8047e
-    m_ActionName: 'Player/Toggle UI[/Keyboard/f2]'
+    m_ActionName: 'Player/Toggle Controls[/Keyboard/c]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121076}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
+        m_MethodName: TogglePlayerData
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: bf71c69c-d8ee-40c9-b20d-57e625b8047f
+    m_ActionName: 'Player/Toggle Player Data[/Keyboard/p]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1681121076}
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
+        m_MethodName: ToggleConsole
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: bf71c69c-d8ee-40c9-b20d-57e625b80480
+    m_ActionName: 'Player/Toggle Console[/Keyboard/f12]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1681121076}
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
         m_MethodName: Aim
         m_Mode: 0
         m_Arguments:
@@ -14069,7 +14137,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 692e5d93-0f91-4800-a315-a702fac53c90
-    m_ActionName: 'Player/Aim[/Keyboard/shift]'
+    m_ActionName: 'Player/Aim[/Mouse/rightButton]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121081}
@@ -14089,7 +14157,7 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121076}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
         m_MethodName: Move
         m_Mode: 0
         m_Arguments:
@@ -14106,7 +14174,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1681121081}
         m_TargetAssemblyTypeName: EditorInputController, Assembly-CSharp
-        m_MethodName: DeveloperMode
+        m_MethodName: EnterEdition
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14117,11 +14185,27 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d
-    m_ActionName: 'Player/Developer Mode[/Keyboard/f1]'
+    m_ActionName: 'Player/Enter Edition[/Keyboard/f1]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1681121081}
+        m_TargetAssemblyTypeName: EditorInputController, Assembly-CSharp
+        m_MethodName: TogglePlayMode
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5e
+    m_ActionName: 'Player/Toggle Play Mode[/Keyboard/leftShift]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1681121076}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_TargetAssemblyTypeName: PlayerInputController, Assembly-CSharp
         m_MethodName: ToggleInertiaStabilizer
         m_Mode: 0
         m_Arguments:
@@ -14165,7 +14249,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: b7311b91-cdea-4e8d-99b6-f8e217f4e288
-    m_ActionName: 'Player/Rotate[/Mouse/scroll/down,/Mouse/scroll/up,/Keyboard/q,/Keyboard/e]'
+    m_ActionName: 'Player/Rotate[/Keyboard/q,/Keyboard/e]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player

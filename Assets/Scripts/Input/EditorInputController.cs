@@ -11,54 +11,52 @@ public class EditorInputController : MonoBehaviour
 
     public void SetSpawnPoint(InputAction.CallbackContext context)
     {
-        if(!context.started) return;
-        if(!_levelData.IsInEditMode) return;
+        if (!context.performed) return;
+        if (!_levelData.IsInEditMode) return;
 
         Vector3 cursorWorldPosition = _playerData.CursorWorld;
         cursorWorldPosition.y = 0f;
         _spawnPointGameObject.position = cursorWorldPosition;
     }
-    public void CreateAstro(InputAction.CallbackContext context)
+
+    public void SpawnPlanet(InputAction.CallbackContext context)
+        => SpawnAstro(context, AstroType.Planet);
+
+    public void SpawnAsteroid(InputAction.CallbackContext context)
+        => SpawnAstro(context, AstroType.Asteroid);
+
+    public void SpawnSun(InputAction.CallbackContext context)
+        => SpawnAstro(context, AstroType.Sun);
+
+    public void EnterEdition(InputAction.CallbackContext context)
     {
-        if (!context.started) return;
+        if (!context.performed) return;
+        _levelData.SetState(GameState.Edition);
+    }
+
+    public void TogglePlayMode(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+
+        GameState current = _levelData.CurrentState;
+        if (current == GameState.Edition)
+        {
+            _levelData.SetState(_levelData.LastPlayMode);
+            return;
+        }
+
+        if (current == GameState.Precision)
+            _levelData.SetState(GameState.Contemplative);
+        else if (current == GameState.Contemplative)
+            _levelData.SetState(GameState.Precision);
+    }
+
+    void SpawnAstro(InputAction.CallbackContext context, AstroType type)
+    {
+        if (!context.performed) return;
         if (_astroManager == null || !_levelData.IsInEditMode) return;
-
-        AstroType type = GetAstroTypeFromBinding(context);
         if (type == AstroType.None) return;
-        
+
         _astroManager.CreateAstro(type, _playerData.CursorWorld);
-    }
-    public void DeveloperMode(InputAction.CallbackContext context)
-    {
-        if (!context.started) return;
-        _levelData.SetState(GetGameStateFromBinding(context));
-    }
-
-    private static AstroType GetAstroTypeFromBinding(InputAction.CallbackContext context)
-    {
-        return GetBindingIndex(context) switch
-        {
-            0 => AstroType.Planet,
-            1 => AstroType.Asteroid,
-            2 => AstroType.Sun,
-            _ => AstroType.Planet
-        };
-    }
-
-    private static GameState GetGameStateFromBinding(InputAction.CallbackContext context)
-    {
-        return GetBindingIndex(context) switch
-        {
-            0 => GameState.Edition,
-            1 => GameState.Precision,
-            2 => GameState.Contemplative,
-            _ => GameState.Edition
-        };
-    }
-
-    private static int GetBindingIndex(InputAction.CallbackContext context)
-    {
-        if (context.action == null || context.control == null) return -1;
-        return context.action.GetBindingIndexForControl(context.control);
     }
 }
