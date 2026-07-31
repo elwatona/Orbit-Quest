@@ -31,11 +31,17 @@ public class AstroEditableData : IPanel
     {
         if(next == null) return;
 
+        if(original == next)
+        {
+            UpdateAstroDataToUI(next);
+            return;
+        }
+
         if(original != null)
         {
             UnsubscribeFromEditable(original);
         }
-        if(original != next) SubscribeToEditable(next);
+        SubscribeToEditable(next);
         
         UpdateAstroDataToUI(next);
     }
