@@ -45,6 +45,11 @@ public class AstroEditableData : IPanel
         
         UpdateAstroDataToUI(next);
     }
+    public void ClearEditable(IEditable editable)
+    {
+        if (editable == null) return;
+        UnsubscribeFromEditable(editable);
+    }
     private void SubscribeToEditable(IEditable editable)
     {
         OrbitGravity.OnValueChanged += editable.UpdateOrbitGravity;

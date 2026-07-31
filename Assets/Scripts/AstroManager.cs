@@ -115,4 +115,43 @@ public class AstroManager : MonoBehaviour, ILimitable
         Astro astro = _astroFactory.Create(type, position);
         _astros.Add(astro);
     }
+    public void RemoveAstro(IEditable editable)
+    {
+        if (editable is not Astro astro) return;
+        if (!_astros.Contains(astro)) return;
+
+        if (astro.HasOrbiter())
+            astro.UpdateOrbiterTargets(System.Array.Empty<IEditable>());
+
+        for (int i = 0; i < _astros.Count; i++)
+        {
+            Astro other = _astros[i];
+            if (other == astro || !other.HasOrbiter()) continue;
+
+            IEditable[] targets = other.Data.orbiter.targets;
+            if (targets == null || targets.Length == 0) continue;
+
+            int keepCount = 0;
+            for (int t = 0; t < targets.Length; t++)
+            {
+                if (targets[t] != editable)
+                    keepCount++;
+            }
+            if (keepCount == targets.Length) continue;
+
+            IEditable[] filtered = keepCount == 0
+                ? System.Array.Empty<IEditable>()
+                : new IEditable[keepCount];
+            int index = 0;
+            for (int t = 0; t < targets.Length; t++)
+            {
+                if (targets[t] != editable)
+                    filtered[index++] = targets[t];
+            }
+            other.UpdateOrbiterTargets(filtered);
+        }
+
+        _astros.Remove(astro);
+        _astroFactory.Release(astro);
+    }
 }

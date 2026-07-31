@@ -64,6 +64,12 @@ public class AstroMovement : IPanel
         TargetsToOrbit.ClearItems();
         TargetsToOrbitList.Clear();
     }
+    public void ClearEditable(IEditable editable)
+    {
+        if (editable == null) return;
+        UnsubscribeFromEditable(editable);
+        ClearTargetsToOrbit();
+    }
 
     private void SubscribeToEditable(IEditable editable)
     {

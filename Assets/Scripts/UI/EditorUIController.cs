@@ -3,6 +3,7 @@ using UnityEngine;
 public class EditorUIController : MonoBehaviour
 {
     [SerializeField] LevelData _levelData;
+    [SerializeField] AstroManager _astroManager;
     [SerializeField] LevelDataDependencies _levelDataDependencies;
     [SerializeField] PresetListDependencies _presetListDependencies;
     [SerializeField] PresetSaveDependencies _presetSaveDependencies;
@@ -143,6 +144,31 @@ public class EditorUIController : MonoBehaviour
     {
         _astroMovement.ClearTargetsToOrbit();
         _selectedEditable.UpdateOrbiterTargets(new IEditable[0]);
+    }
+    public void DeleteSelectedAstro()
+    {
+        if (_selectedEditable == null) return;
+
+        _astroMovement.ClearEditable(_selectedEditable);
+        _astroEditableData.ClearEditable(_selectedEditable);
+        _astroMovement.Toggle(false);
+        _astroEditableData.Toggle(false);
+
+        _selectedEditable.Deselected();
+        _astroManager.RemoveAstro(_selectedEditable);
+        _selectedEditable = null;
+    }
+    public void CloseAstroEditableData()
+    {
+        if (_selectedEditable == null) return;
+
+        _astroMovement.ClearEditable(_selectedEditable);
+        _astroEditableData.ClearEditable(_selectedEditable);
+        _astroMovement.Toggle(false);
+        _astroEditableData.Toggle(false);
+        
+        _selectedEditable.Deselected();
+        _selectedEditable = null;
     }
     public void LoadSelectedPreset()
     {

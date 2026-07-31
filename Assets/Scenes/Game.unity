@@ -2662,7 +2662,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7047459, y: 0, z: 0, w: 0.70945984}
-  m_LocalPosition: {x: 3.656111, y: 20.484373, z: 9.334852}
+  m_LocalPosition: {x: -0.16, y: 16.67, z: 9.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7114,9 +7114,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: EditorUIMediator, Assembly-CSharp
-        m_MethodName: ClosePanel
+      - m_Target: {fileID: 1524067874}
+        m_TargetAssemblyTypeName: EditorUIController, Assembly-CSharp
+        m_MethodName: CloseAstroEditableData
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -11834,9 +11834,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: EditorUIMediator, Assembly-CSharp
-        m_MethodName: DeleteAstro
+      - m_Target: {fileID: 1524067874}
+        m_TargetAssemblyTypeName: EditorUIController, Assembly-CSharp
+        m_MethodName: DeleteSelectedAstro
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -12833,6 +12833,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelData: {fileID: 11400000, guid: f27e5460a57e9f74a85d553a04d57d4a, type: 2}
+  _astroManager: {fileID: 1321915375}
   _levelDataDependencies:
     Root: {fileID: 1555671449}
     Limits: {fileID: 11400000, guid: 959afce9b27fc094da8cc3e4365e48db, type: 2}
