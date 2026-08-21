@@ -15,6 +15,7 @@ public class GameplayUIController : MonoBehaviour
     private Console _console;
     private Controls _controls;
     private AstroInfo _astroInfo;
+    private IEditable _trackedEditable;
 
     
     Dictionary<RuntimeUIEvent, Action> _eventHandlers => new Dictionary<RuntimeUIEvent, Action>
@@ -51,6 +52,20 @@ public class GameplayUIController : MonoBehaviour
         _playerInfo.UpdateImpulseBar(_playerData.ImpulseResource.NormalizedEnergy);
         _playerInfo.UpdateInertiaStabilizerText(_playerData.InertiaResource.InertiaStabilizer);
     }
+
+    void LateUpdate()
+    {
+        if (_trackedEditable == null || !_astroInfo.Root.activeSelf)
+            return;
+
+        if (_trackedEditable is not UnityEngine.Object trackedObject || trackedObject == null)
+        {
+            ClearTrackedAstro();
+            return;
+        }
+
+        _astroInfo.Follow(_trackedEditable);
+    }
     
     void HandleUIEvent(UIEvent uiEvent)
     {
@@ -79,16 +94,24 @@ public class GameplayUIController : MonoBehaviour
     {
         HandlePanelEvent(uiEvent.PanelEnum);
         if (uiEvent.Editable != null)
+        {
+            _trackedEditable = uiEvent.Editable;
             _astroInfo.Update(uiEvent.Editable);
+        }
     }
     void HandleStateEntered(GameState gameState)
     {
         _playerInfo.Toggle(gameState == GameState.Precision);
-        _astroInfo.Toggle(false);
+        ClearTrackedAstro();
     }
     void HandleStateExited(GameState gameState)
     {
         _playerInfo.Toggle(!(gameState == GameState.Precision));
+        ClearTrackedAstro();
+    }
+    void ClearTrackedAstro()
+    {
+        _trackedEditable = null;
         _astroInfo.Toggle(false);
     }
     void HandleSpeedChanged()
