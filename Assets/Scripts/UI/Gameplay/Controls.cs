@@ -32,11 +32,11 @@ public class Controls : IPanel
     public Controls(ControlsDependencies dependencies)
     {
         Root = dependencies.Root;
-        _actions = dependencies.Actions;
+        _actions = ResolveLiveActions(dependencies.Actions);
         _titlePrefab = dependencies.TitlePrefab;
 
-        if (dependencies.Actions == null)
-            Debug.LogError("ControlsDependencies.Actions must reference the same InputActionAsset used by PlayerInput.");
+        if (_actions == null)
+            Debug.LogError("Controls requires PlayerInput.actions or ControlsDependencies.Actions.");
         if (dependencies.BindingRowPrefab == null)
             Debug.LogError("ControlsDependencies.BindingRowPrefab is required.");
         if (dependencies.TitlePrefab == null)
@@ -44,8 +44,8 @@ public class Controls : IPanel
         if (dependencies.BindingsScroll == null)
             Debug.LogError("ControlsDependencies.BindingsScroll is required.");
 
-        _bindingsService = new InputBindingsService(dependencies.Actions);
-        if (dependencies.Actions != null)
+        _bindingsService = new InputBindingsService(_actions);
+        if (_actions != null)
             _bindingsService.EnsureLoaded();
 
         _scroll = new ScrollComponent(dependencies.BindingsScroll, dependencies.BindingRowPrefab);
@@ -114,10 +114,13 @@ public class Controls : IPanel
             foreach (BindingRowEntry entry in entries)
             {
                 BindingRow row = _scroll.AddItem(t => new BindingRow(t));
-                BindingPressType pressType = _bindingsService.GetPressType(
-                    entry.Primary.ActionName,
-                    entry.Primary.BindingIndex,
-                    entry.Primary.MapName);
+                bool isLook = entry.Primary.ActionName == "Look";
+                BindingPressType pressType = isLook
+                    ? BindingPressType.Hold
+                    : _bindingsService.GetPressType(
+                        entry.Primary.ActionName,
+                        entry.Primary.BindingIndex,
+                        entry.Primary.MapName);
 
                 row.Bind(
                     entry.Primary,
@@ -131,7 +134,8 @@ public class Controls : IPanel
                     pressType,
                     showPressType: true,
                     showAlt: true,
-                    value => OnPressTypeChanged(row, value));
+                    isLook ? null : value => OnPressTypeChanged(row, value),
+                    pressTypeLocked: isLook);
                 _rows.Add(row);
             }
         }
@@ -372,6 +376,14 @@ public class Controls : IPanel
         if (info.BindingIndex < 0 || info.BindingIndex >= action.bindings.Count) return null;
 
         return action.bindings[info.BindingIndex];
+    }
+
+    static InputActionAsset ResolveLiveActions(InputActionAsset fallback)
+    {
+        PlayerInput playerInput = UnityEngine.Object.FindFirstObjectByType<PlayerInput>();
+        if (playerInput != null && playerInput.actions != null)
+            return playerInput.actions;
+        return fallback;
     }
 }
 

@@ -226,8 +226,7 @@ public static class InputRebind
 
         foreach (string path in _gesturePaths)
         {
-            if (path.IndexOf("scroll/up", StringComparison.OrdinalIgnoreCase) >= 0
-                || path.IndexOf("scroll/down", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (IsImmediateCapturePath(path))
             {
                 CompleteCapture(ResolveCapture(_gesturePaths));
                 return;
@@ -294,6 +293,19 @@ public static class InputRebind
         if (button == null || !button.isPressed) return;
         if (IsExcluded(button.path)) return;
         into.Add(NormalizeControlPath(button));
+    }
+
+    static bool IsImmediateCapturePath(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        if (path.IndexOf("scroll/up", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (path.IndexOf("scroll/down", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (path.IndexOf("/leftButton", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (path.IndexOf("/rightButton", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (path.IndexOf("/middleButton", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (path.IndexOf("/forwardButton", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (path.IndexOf("/backButton", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        return false;
     }
 
     static bool IsExcluded(string path)

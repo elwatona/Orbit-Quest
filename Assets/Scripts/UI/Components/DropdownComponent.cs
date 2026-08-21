@@ -18,6 +18,10 @@ public class DropdownComponent
     {
         _dropdownRoot.SetActive(active);
     }
+    public void SetInteractable(bool interactable)
+    {
+        _dropdown.interactable = interactable;
+    }
     public void SetOptions(IReadOnlyList<string> options)
     {
         _dropdown.ClearOptions();

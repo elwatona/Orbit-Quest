@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 
 public class CameraManager
@@ -24,7 +23,6 @@ public class CameraManager
         _editorCamera.SetActive(false, commitOrbit: false);
         _precisionCamera.SetActive(false, commitOrbit: false);
         _contemplativeCamera.SetActive(false, commitOrbit: false);
-        BindLookActions();
     }
 
     public void Subscribe()
@@ -39,19 +37,6 @@ public class CameraManager
         CameraInputController.CameraInput -= OnCameraInput;
         CameraInputController.LookHeld -= OnLookHeld;
         _levelData.StateEntered -= UpdateCameras;
-    }
-
-    void BindLookActions()
-    {
-        var playerInput = UnityEngine.Object.FindFirstObjectByType<PlayerInput>();
-        InputActionAsset actions = playerInput != null ? playerInput.actions : null;
-        if (actions == null) return;
-
-        InputAction lookX = actions.FindAction("Look X");
-        InputAction lookY = actions.FindAction("Look Y");
-        _editorCamera.BindLookActions(lookX, lookY);
-        _precisionCamera.BindLookActions(lookX, lookY);
-        _contemplativeCamera.BindLookActions(lookX, lookY);
     }
 
     void OnCameraInput(CameraInputController.InputType inputType, float value)

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 
 public class CameraAxisValues
@@ -99,5 +98,4 @@ public abstract class Camera
 
     public abstract void Zoom(float delta);
     public virtual void SetLookEnabled(bool enabled) { }
-    public virtual void BindLookActions(InputAction lookX, InputAction lookY) { }
 }

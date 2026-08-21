@@ -158,9 +158,11 @@ public class InputBindingsService
     {
         if (_actions == null) return;
 
-        string json = PlayerPrefs.GetString(PlayerPrefsKey, string.Empty);
-        if (!string.IsNullOrEmpty(json))
-            _actions.LoadBindingOverridesFromJson(json);
+        string prefsJson = PlayerPrefs.GetString(PlayerPrefsKey, string.Empty);
+        if (!string.IsNullOrEmpty(prefsJson))
+            _actions.LoadBindingOverridesFromJson(prefsJson);
+
+        RestoreHiddenLookAxes();
 
         _loaded = true;
         BindingsChanged?.Invoke();
@@ -479,6 +481,29 @@ public class InputBindingsService
             BindingPressType.Release => ReleaseInteraction,
             _ => PressInteraction
         };
+    }
+
+    void RestoreHiddenLookAxes()
+    {
+        RestoreAxisBinding("Look X", "<Mouse>/delta/x");
+        RestoreAxisBinding("Look Y", "<Mouse>/delta/y");
+    }
+
+    void RestoreAxisBinding(string actionName, string path)
+    {
+        InputAction action = FindAction(DefaultMapName, actionName);
+        if (action == null) return;
+
+        for (int i = 0; i < action.bindings.Count; i++)
+        {
+            InputBinding binding = action.bindings[i];
+            if (binding.isComposite || binding.isPartOfComposite) continue;
+
+            action.RemoveBindingOverride(i);
+            binding = action.bindings[i];
+            if (!string.Equals(binding.effectivePath, path, StringComparison.Ordinal))
+                action.ApplyBindingOverride(i, path);
+        }
     }
 
     InputAction FindAction(string mapName, string actionName)

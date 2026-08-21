@@ -1088,7 +1088,7 @@ MonoBehaviour:
       Owner: {fileID: 180078741}
       Enabled: 0
       Input:
-        InputAction: {fileID: 0}
+        InputAction: {fileID: 11400000, guid: e4b7c91a2f8d4e6a9c1d3f5a7b8e0c2d, type: 2}
         Gain: 0.2
         LegacyInput: 
         LegacyGain: 1
@@ -1101,7 +1101,7 @@ MonoBehaviour:
       Owner: {fileID: 180078741}
       Enabled: 0
       Input:
-        InputAction: {fileID: 0}
+        InputAction: {fileID: 11400000, guid: f5c8d02b3a9e4f7b0d2e4a6c8b9f1d3e, type: 2}
         Gain: -0.2
         LegacyInput: 
         LegacyGain: 1
@@ -1123,7 +1123,7 @@ MonoBehaviour:
       Driver:
         AccelTime: 0
         DecelTime: 0
-  PlayerIndex: -1
+  PlayerIndex: 0
   AutoEnableInputs: 1
 --- !u!1 &190348141
 GameObject:
@@ -2767,7 +2767,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5606288, y: 0, z: 0, w: 0.82806724}
-  m_LocalPosition: {x: 3.656111, y: 35.48437, z: -2.5651484}
+  m_LocalPosition: {x: -0.16, y: 26.67, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4840,7 +4840,7 @@ MonoBehaviour:
       Owner: {fileID: 544002787}
       Enabled: 0
       Input:
-        InputAction: {fileID: 0}
+        InputAction: {fileID: 11400000, guid: e4b7c91a2f8d4e6a9c1d3f5a7b8e0c2d, type: 2}
         Gain: 0.2
         LegacyInput: 
         LegacyGain: 1
@@ -4853,7 +4853,7 @@ MonoBehaviour:
       Owner: {fileID: 544002787}
       Enabled: 0
       Input:
-        InputAction: {fileID: 0}
+        InputAction: {fileID: 11400000, guid: f5c8d02b3a9e4f7b0d2e4a6c8b9f1d3e, type: 2}
         Gain: -0.2
         LegacyInput: 
         LegacyGain: 1
@@ -4866,7 +4866,7 @@ MonoBehaviour:
       Owner: {fileID: 544002787}
       Enabled: 0
       Input:
-        InputAction: {fileID: -423771258819551211, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
+        InputAction: {fileID: 0}
         Gain: -1
         LegacyInput: 
         LegacyGain: 1
@@ -4875,7 +4875,7 @@ MonoBehaviour:
       Driver:
         AccelTime: 0
         DecelTime: 0
-  PlayerIndex: -1
+  PlayerIndex: 0
   AutoEnableInputs: 1
 --- !u!114 &544002786
 MonoBehaviour:
@@ -4962,7 +4962,7 @@ Transform:
   m_GameObject: {fileID: 544002783}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5606288, y: 0, z: 0, w: 0.82806724}
-  m_LocalPosition: {x: -0.16, y: 16.67, z: 4}
+  m_LocalPosition: {x: -0.16, y: 26.67, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7087,7 +7087,7 @@ MonoBehaviour:
       Owner: {fileID: 732555347}
       Enabled: 0
       Input:
-        InputAction: {fileID: 0}
+        InputAction: {fileID: 11400000, guid: e4b7c91a2f8d4e6a9c1d3f5a7b8e0c2d, type: 2}
         Gain: 0.2
         LegacyInput: 
         LegacyGain: 1
@@ -7100,7 +7100,7 @@ MonoBehaviour:
       Owner: {fileID: 732555347}
       Enabled: 0
       Input:
-        InputAction: {fileID: 0}
+        InputAction: {fileID: 11400000, guid: f5c8d02b3a9e4f7b0d2e4a6c8b9f1d3e, type: 2}
         Gain: -0.2
         LegacyInput: 
         LegacyGain: 1
@@ -7113,7 +7113,7 @@ MonoBehaviour:
       Owner: {fileID: 732555347}
       Enabled: 0
       Input:
-        InputAction: {fileID: -423771258819551211, guid: 1d6e640e716dc4ff6989b73d02023f2b, type: 3}
+        InputAction: {fileID: 0}
         Gain: -1
         LegacyInput: 
         LegacyGain: 1
@@ -7122,7 +7122,7 @@ MonoBehaviour:
       Driver:
         AccelTime: 0
         DecelTime: 0
-  PlayerIndex: -1
+  PlayerIndex: 0
   AutoEnableInputs: 1
 --- !u!114 &732555349
 MonoBehaviour:

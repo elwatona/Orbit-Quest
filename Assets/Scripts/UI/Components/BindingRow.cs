@@ -74,7 +74,8 @@ public class BindingRow : IScrollItem
         BindingPressType pressType,
         bool showPressType,
         bool showAlt,
-        Action<int> onPressTypeChanged)
+        Action<int> onPressTypeChanged,
+        bool pressTypeLocked = false)
     {
         Info = primary;
         AltInfo = alt;
@@ -99,8 +100,11 @@ public class BindingRow : IScrollItem
         _pressType.SetActive(showPressType);
         if (showPressType)
         {
-            _pressType.SetValueWithoutNotify((int)pressType);
-            _pressType.OnValueChanged = value => onPressTypeChanged?.Invoke(value);
+            BindingPressType displayedType = pressTypeLocked ? BindingPressType.Hold : pressType;
+            _pressType.SetValueWithoutNotify((int)displayedType);
+            _pressType.SetInteractable(!pressTypeLocked);
+            if (!pressTypeLocked)
+                _pressType.OnValueChanged = value => onPressTypeChanged?.Invoke(value);
         }
 
         SetActive(true);

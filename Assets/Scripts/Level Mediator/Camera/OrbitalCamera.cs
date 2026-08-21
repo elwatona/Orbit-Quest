@@ -7,7 +7,6 @@ public class OrbitalCamera : Camera
 {
     const string LookOrbitX = "Look Orbit X";
     const string LookOrbitY = "Look Orbit Y";
-    const float LookGain = 0.2f;
 
     readonly CinemachineOrbitalFollow _follow;
     readonly CinemachineInputAxisController _axisController;
@@ -28,29 +27,18 @@ public class OrbitalCamera : Camera
             _baseOrbits = _follow.Orbits;
         }
         SetLookEnabled(false);
+        EnableAssignedLookActions();
     }
 
-    public override void BindLookActions(InputAction lookX, InputAction lookY)
+    void EnableAssignedLookActions()
     {
         if (_axisController == null) return;
 
-        lookX?.Enable();
-        lookY?.Enable();
-
         foreach (var controller in _axisController.Controllers)
         {
-            if (controller.Name == LookOrbitX && lookX != null)
-            {
-                controller.Input.InputAction = InputActionReference.Create(lookX);
-                controller.Input.Gain = LookGain;
-                controller.Input.CancelDeltaTime = true;
-            }
-            else if (controller.Name == LookOrbitY && lookY != null)
-            {
-                controller.Input.InputAction = InputActionReference.Create(lookY);
-                controller.Input.Gain = -LookGain;
-                controller.Input.CancelDeltaTime = true;
-            }
+            if (controller.Name != LookOrbitX && controller.Name != LookOrbitY)
+                continue;
+            controller.Input.InputAction?.action?.Enable();
         }
     }
 
