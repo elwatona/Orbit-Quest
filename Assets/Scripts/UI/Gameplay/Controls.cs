@@ -232,7 +232,7 @@ public class Controls : IPanel
         switch (actionName)
         {
             case "Zoom":
-            case "Rotate":
+            case "Look":
                 return ControlsCategory.Camera;
             case "Spawn Planet":
             case "Spawn Asteroid":
@@ -311,8 +311,6 @@ public class Controls : IPanel
                 return ResolveMoveTitle(info);
             case "Zoom":
                 return ResolveZoomTitle(info);
-            case "Rotate":
-                return ResolveRotateTitle(info);
         }
 
         return info.ActionName;
@@ -348,16 +346,6 @@ public class Controls : IPanel
         {
             "positive" => "Zoom In",
             "negative" => "Zoom Out",
-            _ => info.ActionName
-        };
-    }
-
-    string ResolveRotateTitle(InputBindingInfo info)
-    {
-        return (info.PartName ?? GetBindingPartName(info)) switch
-        {
-            "positive" => "Rotate Right",
-            "negative" => "Rotate Left",
             _ => info.ActionName
         };
     }

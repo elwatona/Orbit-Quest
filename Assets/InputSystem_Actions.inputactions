@@ -15,12 +15,30 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Rotate",
+                    "name": "Look",
+                    "type": "Button",
+                    "id": "e8a1c2d3-4b5c-4d6e-8f90-1a2b3c4d5e6f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Look X",
                     "type": "Value",
-                    "id": "b7311b91-cdea-4e8d-99b6-f8e217f4e288",
+                    "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c6a",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": "Hold",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Look Y",
+                    "type": "Value",
+                    "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c6b",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
                     "initialStateCheck": true
                 },
                 {
@@ -218,37 +236,48 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Keyboard Keys",
+                    "name": "",
                     "id": "40288158-e25b-485a-a34e-e4dac132a375",
-                    "path": "1DAxis",
+                    "path": "<Mouse>/middleButton",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "Rotate",
-                    "isComposite": true,
+                    "groups": "Keyboard&Mouse",
+                    "action": "Look",
+                    "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "negative",
+                    "name": "",
                     "id": "4345a587-9f4a-4be1-974e-8275e6a7aa7f",
-                    "path": "<Keyboard>/q",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Rotate",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Look",
                     "isComposite": false,
-                    "isPartOfComposite": true
+                    "isPartOfComposite": false
                 },
                 {
-                    "name": "positive",
+                    "name": "",
                     "id": "104e2c51-94a5-4da6-835d-f5dc07b2848c",
-                    "path": "<Keyboard>/e",
+                    "path": "<Mouse>/delta/x",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Rotate",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Look X",
                     "isComposite": false,
-                    "isPartOfComposite": true
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b5c6d7e8-9f01-4a2b-8c3d-4e5f6a7b8c9d",
+                    "path": "<Mouse>/delta/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Look Y",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",

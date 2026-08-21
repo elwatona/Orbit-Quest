@@ -1,88 +1,91 @@
 using System;
+using UnityEngine;
+using UnityEngine.InputSystem;
 using Unity.Cinemachine;
+
 public class CameraManager
 {
     readonly LevelData _levelData;
-    readonly EditorCamera _editorCamera;
-    readonly PrecisionCamera _precisionCamera;
-    readonly PrecisionCamera _contemplativeCamera;
+    readonly OrbitalCamera _editorCamera;
+    readonly OrbitalCamera _precisionCamera;
+    readonly OrbitalCamera _contemplativeCamera;
 
-    private float _rotationInput;
+    OrbitalCamera _activeCamera;
+    bool _lookHeld;
 
     public CameraManager(CameraManagerDependencies dependencies)
     {
         _levelData = dependencies.LevelData;
         var sharedZoom = new SharedCameraZoom();
-        var sharedPose = new SharedCameraPose();
-        _editorCamera = new EditorCamera(dependencies.EditorCamera, sharedZoom, sharedPose);
-        _precisionCamera = new PrecisionCamera(dependencies.PrecisionCamera, sharedZoom, sharedPose);
-        _contemplativeCamera = new PrecisionCamera(dependencies.ContemplativeCamera, sharedZoom, sharedPose);
+        var sharedOrbit = new SharedCameraOrbit();
+        _editorCamera = new OrbitalCamera(dependencies.EditorCamera, sharedZoom, sharedOrbit);
+        _precisionCamera = new OrbitalCamera(dependencies.PrecisionCamera, sharedZoom, sharedOrbit);
+        _contemplativeCamera = new OrbitalCamera(dependencies.ContemplativeCamera, sharedZoom, sharedOrbit);
+        _editorCamera.SetActive(false, commitOrbit: false);
+        _precisionCamera.SetActive(false, commitOrbit: false);
+        _contemplativeCamera.SetActive(false, commitOrbit: false);
+        BindLookActions();
     }
+
     public void Subscribe()
     {
         CameraInputController.CameraInput += OnCameraInput;
+        CameraInputController.LookHeld += OnLookHeld;
         _levelData.StateEntered += UpdateCameras;
     }
+
     public void Unsubscribe()
     {
         CameraInputController.CameraInput -= OnCameraInput;
+        CameraInputController.LookHeld -= OnLookHeld;
         _levelData.StateEntered -= UpdateCameras;
     }
-    public void Update() => OnRotate(_rotationInput);
-    private void OnCameraInput(CameraInputController.InputType inputType, float value)
-    {
-        switch(inputType)
-        {
-            case CameraInputController.InputType.Zoom:
-                OnZoom(value);
-                break;
-            case CameraInputController.InputType.Rotate:
-                _rotationInput = value;
-                break;
-        }
-    }
-    private void OnZoom(float delta)
-    {
-        switch(_levelData.CurrentState)
-        {
-            case GameState.Edition:
-                _editorCamera.Zoom(delta);
-                break;
-            case GameState.Precision:
-                _precisionCamera.Zoom(delta);
-                break;
-            case GameState.Contemplative:
-                _contemplativeCamera.Zoom(delta);
-                break;
-        }
-    }
-    private void OnRotate(float delta)
-    {
-        switch(_levelData.CurrentState)
-        {
-            case GameState.Edition:
-                _editorCamera.Rotate(delta);
-                break;
-        }
-    }
-    private void UpdateCameras(GameState cameraType)
-    {
-        _editorCamera.SetActive(false);
-        _precisionCamera.SetActive(false);
-        _contemplativeCamera.SetActive(false);
 
-        switch (cameraType)
+    void BindLookActions()
+    {
+        var playerInput = UnityEngine.Object.FindFirstObjectByType<PlayerInput>();
+        InputActionAsset actions = playerInput != null ? playerInput.actions : null;
+        if (actions == null) return;
+
+        InputAction lookX = actions.FindAction("Look X");
+        InputAction lookY = actions.FindAction("Look Y");
+        _editorCamera.BindLookActions(lookX, lookY);
+        _precisionCamera.BindLookActions(lookX, lookY);
+        _contemplativeCamera.BindLookActions(lookX, lookY);
+    }
+
+    void OnCameraInput(CameraInputController.InputType inputType, float value)
+    {
+        if (inputType != CameraInputController.InputType.Zoom) return;
+        OnZoom(value);
+    }
+
+    void OnLookHeld(bool held)
+    {
+        _lookHeld = held;
+        _activeCamera?.SetLookEnabled(held);
+    }
+
+    void OnZoom(float delta)
+    {
+        _activeCamera?.Zoom(delta);
+    }
+
+    void UpdateCameras(GameState cameraType)
+    {
+        _activeCamera?.SetActive(false);
+
+        _activeCamera = cameraType switch
         {
-            case GameState.Edition:
-                _editorCamera.SetActive(true);
-                break;
-            case GameState.Precision:
-                _precisionCamera.SetActive(true);
-                break;
-            case GameState.Contemplative:
-                _contemplativeCamera.SetActive(true);
-                break;
-        }
+            GameState.Edition => _editorCamera,
+            GameState.Precision => _precisionCamera,
+            GameState.Contemplative => _contemplativeCamera,
+            _ => null
+        };
+
+        if (_activeCamera == null) return;
+        _activeCamera.SetActive(true);
+        _activeCamera.SetLookEnabled(_lookHeld);
     }
 }
 

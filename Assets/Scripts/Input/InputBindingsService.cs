@@ -67,6 +67,7 @@ public class InputBindingsService
     const string PlayerPrefsKey = "InputBindingOverrides";
     const string DefaultMapName = "Player";
     const string ExcludedMapName = "UI";
+    static readonly string[] HiddenActions = { "Look X", "Look Y" };
     const string PressInteraction = "Press";
     const string HoldInteraction = "Hold";
     const string ReleaseInteraction = "Press(behavior=1)";
@@ -86,6 +87,16 @@ public class InputBindingsService
 
     public bool IsRebinding => _rebinding || InputRebind.IsCapturing;
 
+    static bool IsHiddenAction(string actionName)
+    {
+        for (int i = 0; i < HiddenActions.Length; i++)
+        {
+            if (HiddenActions[i] == actionName)
+                return true;
+        }
+        return false;
+    }
+
     public IReadOnlyList<InputBindingInfo> GetPlayerBindings()
         => GetBindings(DefaultMapName);
 
@@ -101,6 +112,8 @@ public class InputBindingsService
 
             foreach (InputAction action in map.actions)
             {
+                if (IsHiddenAction(action.name)) continue;
+
                 for (int i = 0; i < action.bindings.Count; i++)
                 {
                     InputBinding binding = action.bindings[i];

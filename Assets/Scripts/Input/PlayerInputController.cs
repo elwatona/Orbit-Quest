@@ -13,7 +13,7 @@ public class PlayerInputController : MonoBehaviour
     [SerializeField] PlayerData _playerData;
     [SerializeField] LevelData _levelData;
 
-    private bool _canReadInputs => _levelData.CurrentState == GameState.Precision && _playerData.IsAlive;
+    private bool _canReadInputs => _levelData.CurrentState != GameState.Edition && _playerData.IsAlive;
 
     Vector3 _lastMoveValue;
     InputAction _forceRespawnAction;

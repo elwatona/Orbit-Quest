@@ -9,10 +9,12 @@ public class CameraInputController : MonoBehaviour
     public enum InputType
     {
         Zoom,
-        Rotate,
         SwitchCameraType
     }
+
     public static event Action<InputType, float> CameraInput;
+    public static event Action<bool> LookHeld;
+    public static event Action<Vector2> MoveInput;
 
     [Header("Zoom Input")]
     [SerializeField] float _mouseWheelZoomStep = 1f;
@@ -20,10 +22,50 @@ public class CameraInputController : MonoBehaviour
     bool _pointerOverUI;
     readonly List<RaycastResult> _raycastResults = new List<RaycastResult>();
     PointerEventData _pointerEventData;
+    InputAction _lookAction;
+    InputAction _moveAction;
 
     void Update()
     {
         _pointerOverUI = IsPointerOverUI();
+    }
+
+    void OnEnable()
+    {
+        var playerInput = GetComponent<PlayerInput>();
+        InputActionAsset actions = playerInput != null ? playerInput.actions : null;
+        if (actions == null) return;
+
+        _lookAction = actions.FindAction("Look");
+        if (_lookAction != null)
+        {
+            _lookAction.started += OnLook;
+            _lookAction.canceled += OnLook;
+        }
+
+        _moveAction = actions.FindAction("Move");
+        if (_moveAction != null)
+        {
+            _moveAction.performed += OnMove;
+            _moveAction.canceled += OnMove;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (_lookAction != null)
+        {
+            _lookAction.started -= OnLook;
+            _lookAction.canceled -= OnLook;
+            _lookAction = null;
+        }
+
+        if (_moveAction != null)
+        {
+            _moveAction.performed -= OnMove;
+            _moveAction.canceled -= OnMove;
+            _moveAction = null;
+        }
     }
 
     public void ChangeCameraZoom(InputAction.CallbackContext context)
@@ -41,9 +83,21 @@ public class CameraInputController : MonoBehaviour
         }
     }
 
-    public void RotateCamera(InputAction.CallbackContext context)
+    void OnLook(InputAction.CallbackContext context)
     {
-        CameraInput?.Invoke(InputType.Rotate, context.ReadValue<float>());
+        if (context.started)
+        {
+            LookHeld?.Invoke(!_pointerOverUI);
+            return;
+        }
+
+        if (context.canceled)
+            LookHeld?.Invoke(false);
+    }
+
+    void OnMove(InputAction.CallbackContext context)
+    {
+        MoveInput?.Invoke(context.ReadValue<Vector2>());
     }
 
     bool IsPointerOverUI()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 
 public class CameraAxisValues
@@ -37,15 +38,17 @@ public class SharedCameraZoom
     public Vector2 Limits { get; }
 }
 
-public class SharedCameraPose
+public class SharedCameraOrbit
 {
     public bool HasValue { get; private set; }
-    public Vector3 Position { get; private set; }
+    public float Horizontal { get; private set; }
+    public float Vertical { get; private set; }
     public Quaternion Rotation { get; private set; } = Quaternion.identity;
 
-    public void Set(Vector3 position, Quaternion rotation)
+    public void Set(float horizontal, float vertical, Quaternion rotation)
     {
-        Position = position;
+        Horizontal = horizontal;
+        Vertical = vertical;
         Rotation = rotation;
         HasValue = true;
     }
@@ -54,32 +57,33 @@ public class SharedCameraPose
 public abstract class Camera
 {
     protected CameraAxisValues _zoom;
-    protected CameraAxisValues _rotation;
     protected readonly SharedCameraZoom _sharedZoom;
-    protected readonly SharedCameraPose _sharedPose;
+    protected readonly SharedCameraOrbit _sharedOrbit;
     protected readonly CinemachineCamera _camera;
     protected readonly Transform _cameraTransform;
 
-    public Camera(CinemachineCamera camera, SharedCameraZoom sharedZoom, SharedCameraPose sharedPose)
+    public Camera(CinemachineCamera camera, SharedCameraZoom sharedZoom, SharedCameraOrbit sharedOrbit)
     {
         _camera = camera;
         _cameraTransform = camera.transform;
         _sharedZoom = sharedZoom;
-        _sharedPose = sharedPose;
+        _sharedOrbit = sharedOrbit;
         _zoom = sharedZoom.Zoom;
-        _rotation = new CameraAxisValues(10f);
     }
 
-    public virtual void SetActive(bool active)
+    public virtual void SetActive(bool active, bool commitOrbit = true)
     {
-        if (!active && _camera.enabled)
-            CommitPose();
+        if (!active && _camera.enabled && commitOrbit)
+            CommitOrbit();
+
+        if (!active)
+            SetLookEnabled(false);
 
         _camera.enabled = active;
 
         if (active)
         {
-            ApplySharedPose();
+            ApplySharedOrbit();
             ApplySharedZoom();
         }
     }
@@ -89,20 +93,11 @@ public abstract class Camera
         _camera.Lens.OrthographicSize = _sharedZoom.OrthographicSize;
     }
 
-    protected virtual void CommitPose()
-    {
-        _sharedPose.Set(_camera.State.GetFinalPosition(), _camera.State.GetFinalOrientation());
-    }
+    protected virtual void CommitOrbit() { }
 
-    protected virtual void ApplySharedPose()
-    {
-        if (!_sharedPose.HasValue) return;
-        _camera.ForceCameraPosition(_sharedPose.Position, _sharedPose.Rotation);
-    }
+    protected virtual void ApplySharedOrbit() { }
 
     public abstract void Zoom(float delta);
-    public abstract void Rotate(float delta);
-
-    public virtual void Update() {}
-    public virtual void LateUpdate() {}
+    public virtual void SetLookEnabled(bool enabled) { }
+    public virtual void BindLookActions(InputAction lookX, InputAction lookY) { }
 }

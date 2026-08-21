@@ -29,10 +29,6 @@ public class LevelMediator : MonoBehaviour
         _cameraManager.Unsubscribe();
     }
     void Start() => _levelData.Start();
-    void Update()
-    {
-        _cameraManager.Update();
-    }
 
     private void UpdateLimitables()
     {
