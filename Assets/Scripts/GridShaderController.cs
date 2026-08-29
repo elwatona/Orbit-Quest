@@ -49,4 +49,10 @@ public class GridShaderController
         _currentOpacity = Mathf.Clamp01(value);
         Apply();
     }
+
+    public void UpdateThickness(float value)
+    {
+        _currentThickness = Mathf.Clamp(value, GraphicsTuning.ThicknessMin, GraphicsTuning.ThicknessMax);
+        Apply();
+    }
 }

@@ -247,6 +247,7 @@ public class Controls : IPanel
             case "Toggle Controls":
             case "Toggle Player Data":
             case "Toggle Console":
+            case "Toggle Menu":
                 return ControlsCategory.Editor;
             default:
                 return ControlsCategory.Orb;

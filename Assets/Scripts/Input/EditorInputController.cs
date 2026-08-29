@@ -13,6 +13,7 @@ public class EditorInputController : MonoBehaviour
     {
         if (!context.performed) return;
         if (!_levelData.IsInEditMode) return;
+        if (_levelData.IsPaused) return;
 
         Vector3 cursorWorldPosition = _playerData.CursorWorld;
         cursorWorldPosition.y = 0f;
@@ -37,6 +38,7 @@ public class EditorInputController : MonoBehaviour
     public void TogglePlayMode(InputAction.CallbackContext context)
     {
         if (!context.performed) return;
+        if (_levelData.IsPaused) return;
 
         GameState current = _levelData.CurrentState;
         if (current == GameState.Edition)
@@ -55,6 +57,7 @@ public class EditorInputController : MonoBehaviour
     {
         if (!context.performed) return;
         if (_astroManager == null || !_levelData.IsInEditMode) return;
+        if (_levelData.IsPaused) return;
         if (type == AstroType.None) return;
 
         _astroManager.CreateAstro(type, _playerData.CursorWorld);

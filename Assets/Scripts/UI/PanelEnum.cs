@@ -4,5 +4,6 @@ public enum PanelEnum
     Controls,
     PlayerData,
     Console,
-    AstroInfo
+    AstroInfo,
+    InGameMenu
 }

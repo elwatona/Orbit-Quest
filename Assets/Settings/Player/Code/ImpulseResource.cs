@@ -28,7 +28,7 @@ public class ImpulseResource : ScriptableObject
 
     public void SetRechargeDuration(float seconds)
     {
-        _rechargeDuration = Mathf.Max(0.01f, seconds);
+        _rechargeDuration = Mathf.Clamp(seconds, OrbiterTuning.RechargeDurationEditMin, OrbiterTuning.RechargeDurationEditMax);
         ImpulseSettingsChanged?.Invoke(ImpulseSettingsChangeType.RechargeDuration);
     }
 
@@ -61,7 +61,7 @@ public class ImpulseResource : ScriptableObject
     }
     public void UpdateImpulseForce(float value)
     {
-        _impulseForce = Mathf.Clamp(value, OrbiterTuning.ImpulseForceMin, OrbiterTuning.ImpulseForceMax);
+        _impulseForce = Mathf.Clamp(value, OrbiterTuning.ImpulseForceEditMin, OrbiterTuning.ImpulseForceEditMax);
         ImpulseSettingsChanged?.Invoke(ImpulseSettingsChangeType.ImpulseForce);
     }
     public void UpdateImpulseMode(int mode)

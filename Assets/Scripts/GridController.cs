@@ -11,6 +11,7 @@ public class GridController : MonoBehaviour
     [Header("References")]
     [SerializeField] UnityEngine.Camera _camera;
     [SerializeField] LevelData _levelData;
+    [SerializeField] GameSettings _gameSettings;
 
     [Header("Fit Settings")]
     [SerializeField, Min(1f)] float _coverageMargin = 1.1f;
@@ -46,10 +47,18 @@ public class GridController : MonoBehaviour
     void OnEnable()
     {
         _levelData.StateEntered += HandleStateEntered;
+        if (_gameSettings != null)
+        {
+            _gameSettings.Initialize();
+            _gameSettings.Changed += ApplyGraphicsSettings;
+            ApplyGraphicsSettings();
+        }
     }
     void OnDisable()
     {
         _levelData.StateEntered -= HandleStateEntered;
+        if (_gameSettings != null)
+            _gameSettings.Changed -= ApplyGraphicsSettings;
     }
     void LateUpdate()
     {
@@ -60,6 +69,13 @@ public class GridController : MonoBehaviour
     private void HandleStateEntered(GameState state)
     {
         _shaderController.UpdateOpacity(GetOpacity(state));
+    }
+
+    void ApplyGraphicsSettings()
+    {
+        if (_shaderController == null || _gameSettings == null)
+            return;
+        _shaderController.UpdateThickness(_gameSettings.Graphics.GridThickness.Value);
     }
     private void CacheGridFrame()
     {

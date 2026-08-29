@@ -5,16 +5,20 @@ public class GameplayUIController : MonoBehaviour
 {
     [Header("Settings")]
     [SerializeField] PlayerData _playerData;
+    [SerializeField] LevelData _levelData;
+    [SerializeField] GameSettings _gameSettings;
     [Header("Dependencies")]
     [SerializeField] PlayerInfoDependencies _playerInfoDependencies;
     [SerializeField] ConsoleDependencies _consoleDependencies;
     [SerializeField] ControlsDependencies _controlsDependencies;
     [SerializeField] AstroInfoDependencies _astroInfoDependencies;
+    [SerializeField] InGameMenuDependencies _inGameMenuDependencies;
 
     private PlayerInfo _playerInfo;
     private Console _console;
     private Controls _controls;
     private AstroInfo _astroInfo;
+    private InGameMenu _inGameMenu;
     private IEditable _trackedEditable;
 
     
@@ -26,10 +30,20 @@ public class GameplayUIController : MonoBehaviour
     };
     void Awake()
     {
+        if (_gameSettings != null)
+            _gameSettings.Initialize();
+
         _playerInfo = new PlayerInfo(_playerInfoDependencies);
         _console = new Console(_consoleDependencies);
         _controls = new Controls(_controlsDependencies);
         _astroInfo = new AstroInfo(_astroInfoDependencies);
+        _inGameMenu = new InGameMenu(
+            _inGameMenuDependencies,
+            transform,
+            _gameSettings,
+            onResume: CloseMenu,
+            onControlsVisible: visible => _controls.Toggle(visible));
+        _inGameMenu.AttachControls(_controls);
     }
     void OnEnable()
     {
@@ -40,6 +54,8 @@ public class GameplayUIController : MonoBehaviour
     {
         Application.logMessageReceived -= _console.Log;
         UIEventHandler.OnUIEvent -= HandleUIEvent;
+        if (_levelData != null)
+            _levelData.SetPaused(false);
     }
     void Start()
     {
@@ -103,6 +119,8 @@ public class GameplayUIController : MonoBehaviour
     {
         _playerInfo.Toggle(gameState == GameState.Precision);
         ClearTrackedAstro();
+        if (gameState == GameState.Edition)
+            CloseMenu();
     }
     void HandleStateExited(GameState gameState)
     {
@@ -131,7 +149,7 @@ public class GameplayUIController : MonoBehaviour
         switch (panelEnum)
         {
             case PanelEnum.Controls:
-                _controls.Toggle(!_controls.Root.activeSelf);
+                OpenMenuOnControlsTab();
                 break;
             case PanelEnum.Console:
                 _console.Toggle(!_console.Root.activeSelf);
@@ -139,6 +157,46 @@ public class GameplayUIController : MonoBehaviour
             case PanelEnum.AstroInfo:
                 _astroInfo.Toggle(true);
                 break;
+            case PanelEnum.InGameMenu:
+                ToggleMenu();
+                break;
         }
+    }
+
+    void ToggleMenu()
+    {
+        bool open = !_inGameMenu.Root.activeSelf;
+        if (open)
+            OpenMenu();
+        else
+            CloseMenu();
+    }
+
+    void OpenMenu()
+    {
+        _console.Toggle(false);
+        _inGameMenu.Toggle(true);
+        _levelData?.SetPaused(true);
+    }
+
+    void OpenMenuOnControlsTab()
+    {
+        _console.Toggle(false);
+        if (!_inGameMenu.Root.activeSelf)
+        {
+            _inGameMenu.OpenOnTab(InGameMenu.ControlsTabIndex);
+            _levelData?.SetPaused(true);
+            return;
+        }
+
+        _inGameMenu.ShowTab(InGameMenu.ControlsTabIndex);
+    }
+
+    void CloseMenu()
+    {
+        bool wasOpen = _inGameMenu != null && _inGameMenu.Root.activeSelf;
+        if (wasOpen)
+            _inGameMenu.Toggle(false);
+        _levelData?.SetPaused(false);
     }
 }

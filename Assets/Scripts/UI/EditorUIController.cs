@@ -4,6 +4,7 @@ public class EditorUIController : MonoBehaviour
 {
     [SerializeField] LevelData _levelData;
     [SerializeField] AstroManager _astroManager;
+    [SerializeField] GameSettings _gameSettings;
     [SerializeField] LevelDataDependencies _levelDataDependencies;
     [SerializeField] PresetListDependencies _presetListDependencies;
     [SerializeField] PresetSaveDependencies _presetSaveDependencies;
@@ -35,6 +36,9 @@ public class EditorUIController : MonoBehaviour
         _astroSelector = new AstroSelector(_astroSelectorDependencies);
 
         _panels = new IPanel[] { _levelLimitsUI, _playerEditableData, _astroMovement, _astroEditableData, _astroSelector };
+
+        if (_gameSettings != null)
+            _gameSettings.Initialize();
     }
     void OnEnable()
     {
@@ -43,9 +47,12 @@ public class EditorUIController : MonoBehaviour
         PresetEvents.OnPresetSelected += _presetList.HandlePresetSelected;
         _levelData.StateEntered += HandleStateEntered;
         _levelData.StateExited += HandleStateExited;
+        if (_gameSettings != null)
+            _gameSettings.Changed += HandleGameSettingsChanged;
 
         ToggleSelectingTargets(false);
         _playerEditableData.ConnectPlayerDataToUI();
+        ApplyEditionRanges();
     }
     void OnDisable()
     {
@@ -54,6 +61,20 @@ public class EditorUIController : MonoBehaviour
         PresetEvents.OnPresetSelected -= _presetList.HandlePresetSelected;
         _levelData.StateEntered -= HandleStateEntered;
         _levelData.StateExited -= HandleStateExited;
+        if (_gameSettings != null)
+            _gameSettings.Changed -= HandleGameSettingsChanged;
+    }
+
+    void HandleGameSettingsChanged()
+    {
+        ApplyEditionRanges();
+    }
+
+    void ApplyEditionRanges()
+    {
+        _astroEditableData.ApplyRanges();
+        _astroMovement.ApplyRanges();
+        _playerEditableData.ApplyRanges();
     }
 
     private void HandleStateEntered(GameState gameState)

@@ -57,11 +57,16 @@ public class PlayerEditableData : IPanel
         ThrusterForce.UpdateValue(PlayerData.ThrusterResource.ThrustForce);
         MaxThrustSpeed.UpdateValue(PlayerData.InertiaResource.StabilizerMaxThrustSpeed);
 
-        ImpulseForce.UpdateValueRange(OrbiterTuning.ImpulseForceMin, OrbiterTuning.ImpulseForceMax);
-        ImpuseCooldown.UpdateValueRange(OrbiterTuning.RechargeDurationMin, OrbiterTuning.RechargeDurationMax);
-        InertiaDampTime.UpdateValueRange(OrbiterTuning.InertiaDampTimeMin, OrbiterTuning.InertiaDampTimeMax);
-        ThrusterForce.UpdateValueRange(OrbiterTuning.ThrustForceMin, OrbiterTuning.ThrustForceMax);
-        MaxThrustSpeed.UpdateValueRange(OrbiterTuning.StabilizerMaxThrustSpeedMin, OrbiterTuning.StabilizerMaxThrustSpeedMax);
+        ApplyRanges();
+    }
+
+    public void ApplyRanges()
+    {
+        ImpulseForce.UpdateValueRange(OrbiterTuning.ImpulseForceEditMin, OrbiterTuning.ImpulseForceEditMax);
+        ImpuseCooldown.UpdateValueRange(OrbiterTuning.RechargeDurationEditMin, OrbiterTuning.RechargeDurationEditMax);
+        InertiaDampTime.UpdateValueRange(OrbiterTuning.InertiaDampTimeEditMin, OrbiterTuning.InertiaDampTimeEditMax);
+        ThrusterForce.UpdateValueRange(OrbiterTuning.ThrustForceEditMin, OrbiterTuning.ThrustForceEditMax);
+        MaxThrustSpeed.UpdateValueRange(OrbiterTuning.StabilizerMaxThrustSpeedEditMin, OrbiterTuning.StabilizerMaxThrustSpeedEditMax);
     }
 }
 

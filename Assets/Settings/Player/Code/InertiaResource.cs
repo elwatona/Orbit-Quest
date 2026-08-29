@@ -31,12 +31,12 @@ public class InertiaResource : ScriptableObject
     }
     public void UpdateInertiaDampTime(float value)
     {
-        _inertiaDampTime = Mathf.Clamp(value, OrbiterTuning.InertiaDampTimeMin, OrbiterTuning.InertiaDampTimeMax);
+        _inertiaDampTime = Mathf.Clamp(value, OrbiterTuning.InertiaDampTimeEditMin, OrbiterTuning.InertiaDampTimeEditMax);
         InertiaSettingsChanged?.Invoke(InertiaSettingsChangeType.InertiaDampTime);
     }
     public void UpdateStabilizerMaxThrustSpeed(float value)
     {
-        _stabilizerMaxThrustSpeed = Mathf.Clamp(value, OrbiterTuning.StabilizerMaxThrustSpeedMin, OrbiterTuning.StabilizerMaxThrustSpeedMax);
+        _stabilizerMaxThrustSpeed = Mathf.Clamp(value, OrbiterTuning.StabilizerMaxThrustSpeedEditMin, OrbiterTuning.StabilizerMaxThrustSpeedEditMax);
         InertiaSettingsChanged?.Invoke(InertiaSettingsChangeType.StabilizerMaxThrustSpeed);
     }
     public InertiaResourceSettings ToInertiaResourceSettings()

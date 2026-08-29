@@ -18,10 +18,15 @@ public class AstroEditableData : IPanel
         BodyRadius = new SliderComponent(dependencies.BodyRadius);
         BodyRotationSpeed = new SliderComponent(dependencies.BodyRotationSpeed);
 
-        OrbitGravity.UpdateValueRange(AstroTuning.GravityMin, AstroTuning.GravityMax);
-        OrbitRadius.UpdateValueRange(AstroTuning.OrbitRadiusMin, AstroTuning.OrbitRadiusMax);
-        BodyRadius.UpdateValueRange(AstroTuning.BodyRadiusMin, AstroTuning.BodyRadiusMax);
-        BodyRotationSpeed.UpdateValueRange(AstroTuning.RotationSpeedMin, AstroTuning.RotationSpeedMax);
+        ApplyRanges();
+    }
+
+    public void ApplyRanges()
+    {
+        OrbitGravity.UpdateValueRange(AstroTuning.GravityEditMin, AstroTuning.GravityEditMax);
+        OrbitRadius.UpdateValueRange(AstroTuning.OrbitRadiusEditMin, AstroTuning.OrbitRadiusEditMax);
+        BodyRadius.UpdateValueRange(AstroTuning.BodyRadiusEditMin, AstroTuning.BodyRadiusEditMax);
+        BodyRotationSpeed.UpdateValueRange(AstroTuning.RotationSpeedEditMin, AstroTuning.RotationSpeedEditMax);
     }
     public void Toggle(bool active)
     {

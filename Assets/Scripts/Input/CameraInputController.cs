@@ -18,6 +18,7 @@ public class CameraInputController : MonoBehaviour
 
     [Header("Zoom Input")]
     [SerializeField] float _mouseWheelZoomStep = 1f;
+    [SerializeField] LevelData _levelData;
 
     bool _pointerOverUI;
     readonly List<RaycastResult> _raycastResults = new List<RaycastResult>();
@@ -68,9 +69,12 @@ public class CameraInputController : MonoBehaviour
         }
     }
 
+    bool IsPaused => _levelData != null && _levelData.IsPaused;
+
     public void ChangeCameraZoom(InputAction.CallbackContext context)
     {
         if (!context.started) return;
+        if (IsPaused) return;
 
         if (context.control.device is Mouse)
         {
@@ -87,7 +91,7 @@ public class CameraInputController : MonoBehaviour
     {
         if (context.started)
         {
-            LookHeld?.Invoke(!_pointerOverUI);
+            LookHeld?.Invoke(!IsPaused && !_pointerOverUI);
             return;
         }
 
@@ -97,6 +101,11 @@ public class CameraInputController : MonoBehaviour
 
     void OnMove(InputAction.CallbackContext context)
     {
+        if (IsPaused)
+        {
+            MoveInput?.Invoke(Vector2.zero);
+            return;
+        }
         MoveInput?.Invoke(context.ReadValue<Vector2>());
     }
 

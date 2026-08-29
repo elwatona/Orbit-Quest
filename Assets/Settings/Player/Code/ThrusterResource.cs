@@ -22,7 +22,7 @@ public class ThrusterResource : ScriptableObject
     public event Action<ThrusterSettingsChangeType> ThrusterSettingsChanged;
     public void UpdateThrustForce(float value)
     {
-        _thrustForce = Mathf.Clamp(value, OrbiterTuning.ThrustForceMin, OrbiterTuning.ThrustForceMax);
+        _thrustForce = Mathf.Clamp(value, OrbiterTuning.ThrustForceEditMin, OrbiterTuning.ThrustForceEditMax);
         ThrusterSettingsChanged?.Invoke(ThrusterSettingsChangeType.ThrustForce);
     }
     public void UpdateMinThrustAssist(float value)

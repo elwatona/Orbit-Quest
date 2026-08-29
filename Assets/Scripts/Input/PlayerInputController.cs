@@ -13,10 +13,11 @@ public class PlayerInputController : MonoBehaviour
     [SerializeField] PlayerData _playerData;
     [SerializeField] LevelData _levelData;
 
-    private bool _canReadInputs => _levelData.CurrentState != GameState.Edition && _playerData.IsAlive;
+    private bool _canReadInputs => _levelData.CurrentState != GameState.Edition && _playerData.IsAlive && !_levelData.IsPaused;
 
     Vector3 _lastMoveValue;
     InputAction _forceRespawnAction;
+    InputAction _toggleMenuAction;
 
     void Awake()
     {
@@ -27,24 +28,35 @@ public class PlayerInputController : MonoBehaviour
     {
         // PlayerInput UnityEvent for Force Respawn does not invoke at runtime; bind directly.
         var playerInput = GetComponent<PlayerInput>();
-        _forceRespawnAction = playerInput != null
-            ? playerInput.actions?.FindAction("Force Respawn")
-            : null;
+        InputActionAsset actions = playerInput != null ? playerInput.actions : null;
+        _forceRespawnAction = actions?.FindAction("Force Respawn");
         if (_forceRespawnAction != null)
         {
             _forceRespawnAction.started += ForceRespawn;
             _forceRespawnAction.performed += ForceRespawn;
             _forceRespawnAction.canceled += ForceRespawn;
         }
+
+        _toggleMenuAction = actions?.FindAction("Toggle Menu");
+        if (_toggleMenuAction != null)
+            _toggleMenuAction.performed += ToggleMenu;
     }
 
     void OnDisable()
     {
-        if (_forceRespawnAction == null) return;
-        _forceRespawnAction.started -= ForceRespawn;
-        _forceRespawnAction.performed -= ForceRespawn;
-        _forceRespawnAction.canceled -= ForceRespawn;
-        _forceRespawnAction = null;
+        if (_forceRespawnAction != null)
+        {
+            _forceRespawnAction.started -= ForceRespawn;
+            _forceRespawnAction.performed -= ForceRespawn;
+            _forceRespawnAction.canceled -= ForceRespawn;
+            _forceRespawnAction = null;
+        }
+
+        if (_toggleMenuAction != null)
+        {
+            _toggleMenuAction.performed -= ToggleMenu;
+            _toggleMenuAction = null;
+        }
     }
 
     void Update()
@@ -121,6 +133,7 @@ public class PlayerInputController : MonoBehaviour
     public void Respawn(InputAction.CallbackContext context)
     {
         if (!context.performed) return;
+        if (_levelData.IsPaused) return;
         if (!_orbGameObject.activeSelf)
             PerformRespawn();
     }
@@ -128,6 +141,7 @@ public class PlayerInputController : MonoBehaviour
     public void ForceRespawn(InputAction.CallbackContext context)
     {
         if (!context.performed) return;
+        if (_levelData.IsPaused) return;
         _orbGameObject.SetActive(false);
         PerformRespawn();
     }
@@ -155,5 +169,12 @@ public class PlayerInputController : MonoBehaviour
     {
         if (!context.performed) return;
         OnPanelToggled?.Invoke(PanelEnum.Console);
+    }
+
+    public void ToggleMenu(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        if (InputRebind.IsCapturing) return;
+        OnPanelToggled?.Invoke(PanelEnum.InGameMenu);
     }
 }

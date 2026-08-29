@@ -527,12 +527,12 @@ public class TransformOrbiter : MonoBehaviour
 
     public void SetSpeed(float value)
     {
-        _speed = Mathf.Clamp(value, AstroTuning.OrbiterSpeedMin, AstroTuning.OrbiterSpeedMax);
+        _speed = Mathf.Clamp(value, AstroTuning.OrbiterSpeedEditMin, AstroTuning.OrbiterSpeedEditMax);
     }
 
     public void SetRadius(float value)
     {
-        _radius = Mathf.Clamp(value, AstroTuning.OrbiterRadiusMin, AstroTuning.OrbiterRadiusMax);
+        _radius = Mathf.Clamp(value, AstroTuning.OrbiterRadiusEditMin, AstroTuning.OrbiterRadiusEditMax);
         if (UsePathMode())
             BuildEnvelopePath();
         else
@@ -541,7 +541,7 @@ public class TransformOrbiter : MonoBehaviour
 
     public void SetEccentricity(float value)
     {
-        _eccentricity = Mathf.Clamp(value, AstroTuning.OrbiterEccentricityMin, AstroTuning.OrbiterEccentricityMax);
+        _eccentricity = Mathf.Clamp(value, AstroTuning.OrbiterEccentricityEditMin, AstroTuning.OrbiterEccentricityEditMax);
         if (!UsePathMode())
             SetValues();
     }

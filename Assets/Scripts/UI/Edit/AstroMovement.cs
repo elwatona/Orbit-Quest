@@ -19,10 +19,14 @@ public class AstroMovement : IPanel
         Speed = new SliderComponent(dependencies.Speed);
         Eccentricity = new SliderComponent(dependencies.Eccentricity);
 
-        Radius.UpdateValueRange(AstroTuning.OrbiterRadiusMin, AstroTuning.OrbiterRadiusMax);
-        Speed.UpdateValueRange(AstroTuning.OrbiterSpeedMin, AstroTuning.OrbiterSpeedMax);
-        Eccentricity.UpdateValueRange(AstroTuning.OrbiterEccentricityMin, AstroTuning.OrbiterEccentricityMax);
+        ApplyRanges();
+    }
 
+    public void ApplyRanges()
+    {
+        Radius.UpdateValueRange(AstroTuning.OrbiterRadiusEditMin, AstroTuning.OrbiterRadiusEditMax);
+        Speed.UpdateValueRange(AstroTuning.OrbiterSpeedEditMin, AstroTuning.OrbiterSpeedEditMax);
+        Eccentricity.UpdateValueRange(AstroTuning.OrbiterEccentricityEditMin, AstroTuning.OrbiterEccentricityEditMax);
     }
     public void Toggle(bool active)
     {
